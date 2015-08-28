@@ -27,7 +27,7 @@ SET Y, POP      ; store Y in Y
 Poll Keyboard then Write to upper left corner
 ---
 SET A, 0x3001   ; Read Char
-SET, PUSH 1     ; block and wait for a key to be pressed
+SET PUSH, 1     ; block and wait for a key to be pressed
 INT 0x4743      ; invoke BBOS
 SET B, POP      ; get result and store in B
 BOR B, 0xF000   ; Binary OR in format
@@ -93,6 +93,7 @@ start:
 
 my_interrupt_handler:
     SET PUSH, B             ; preserve B
+    SET B, A                ; Use B as scratch pad for masking A
     AND B, 0xFF00           ; mask first octet of B
     IFE B, 0x4700           ; check if it is reserved by BBOS
         SET PC, [bbos_struct+BBOS_INT_HANDLER]  ; invoke BBOS interrupt handler
