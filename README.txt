@@ -27,12 +27,12 @@ SET Y, POP      ; store Y in Y
 Poll Keyboard then Write to upper left corner
 ---
 SET A, 0x3001   ; Read Char
-PUSH 1          ; block and wait for a key to be pressed
+SET, PUSH 1     ; block and wait for a key to be pressed
 INT 0x4743      ; invoke BBOS
-POP B           ; get result and store in B
+SET B, POP      ; get result and store in B
 BOR B, 0xF000   ; Binary OR in format
 SET A, 0x1003   ; Write Char
-PUSH B          ; Push character to be written to screen
+SET PUSH, B     ; Push character to be written to screen
 INT 0x4743      ; invoke BBOS
 ADD SP, 1       ; clean up stack
 
@@ -40,7 +40,7 @@ Note: Write Char does not move the cursor
 
 STRUCTURES
 ==========
-struct biosinfo
+struct bbosinfo
 {
     word Address_Start
     word Address_End
@@ -60,7 +60,7 @@ This section is for people who want to use BBOS functionality. If this isn't you
 you can just ignore the existance of BBOS once you're code is executing.
 
 If you wish to use BBOS, your code needs to co-exist with it.
-The biosinfo struct from the "Get BBOS Info" call gives you all the information
+The bbosinfo struct from the "Get BBOS Info" call gives you all the information
 you need to do this.
  - All code within 'Address_Start' and 'Address_End' must remain untouched, as this
     is where BBOS has positioned itself in memory. Modifying this memory region
@@ -71,7 +71,7 @@ you need to do this.
  - Jumping to bbosinfo.Interrupt_Handler should only be done in the situation described
     in the previous point (example below). This is problematic as you can't easily
     invoke an interrupt from inside an interrupt handler, and thus would not be able to
-    use BBOS functionality. To resolve this, INT 0x4743 and be replaced with JSR bbosinfo.API_Handler.
+    use BBOS functionality. To resolve this, INT 0x4743 can be replaced with JSR bbosinfo.API_Handler.
 
 Custom Interrupt Handler Example
 --------------------------------
@@ -92,14 +92,14 @@ start:
     <other code>
 
 my_interrupt_handler:
-    PUSH B                  ; preserve B
+    SET PUSH, B             ; preserve B
     AND B, 0xFF00           ; mask first octet of B
     IFE B, 0x4700           ; check if it is reserved by BBOS
         SET PC, [bbos_struct+BBOS_INT_HANDLER]  ; invoke BBOS interrupt handler
-    POP B                   ; restore B
+    SET B, POP              ; restore B
 
     <my interrupt handler code> ; custom interrupt code
-    RFI         ; return from interrupt
+    RFI                     ; return from interrupt
 -----------------
 
 FUNCTION TABLE
