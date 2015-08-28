@@ -119,7 +119,7 @@ Scroll Screen           0x1005  Num lines to scroll     None
 -- Drive
 Get Drive Count         0x2000  OUT Drive Count         Drive Count
 Check Drive Status      0x2001  DriveNum                StatusCode
-Get Drive Parameters    0x2002  DriveNum, OUT *Params   None
+Get Drive Parameters    0x2002  DriveNum, *DriveParams  None
 Read Drive Sector       0x2003  DriveNum, Sector, Ptr   Success
 Write Drive Sector      0x2004  DriveNum, Sector, Ptr   Success
 
