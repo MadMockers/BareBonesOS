@@ -93,8 +93,47 @@ entry:
 
     IAS irq_handler
 
-; Test code
-#include "test.asm"
+    IFE [drive_count], 0
+        SET PC, .no_drives
+
+    SET B, 0
+.loop_top:
+    SET A, 0x2003
+    PUSH 0
+    PUSH 0
+    PUSH B
+        INT 0x4743
+    POP A
+    ADD SP, 2
+    IFN A, 1
+        SET PC, .loop_continue
+    IFE [0x1FF], 0x55AA
+        SET PC, jmp_to_bootloader
+.loop_continue:
+    ADD B, 1
+    IFL B, [drive_count]
+        SET PC, .loop_top
+.loop_break:
+    PUSH str_no_boot
+    SET PC, .die
+.no_drives:
+    PUSH str_no_drives
+.die:
+    SET A, 0x1004
+        INT BBOS_IRQ_MAGIC
+    ADD SP, 1
+.die_loop:
+    SET PC, .die_loop
+
+str_no_boot:
+.asciiz "No bootable media found"
+str_no_drives:
+.asciiz "No drives connected"
+
+jmp_to_bootloader:
+    SET A, B    ; Set A to the drive we found the bootloader on
+    SET SP, 0
+    SET PC, 0
 
 irq_handler_jsr:
     PUSH A
@@ -189,6 +228,10 @@ irq_handler:
 .video_irq_writechar:
     SET A, vram_edit
     ADD A, [vram_cursor]
+    SET B, [Z]
+    AND B, 0xFF00
+    IFE B, 0
+        BOR [Z], 0xF000
     SET [A], [Z]
     SET PC, .video_irq_updatescreen
 
@@ -198,7 +241,7 @@ irq_handler:
 
     ; calculate if string will fit in buffer
     SET C, [vram_cursor]
-    SUB C, vram_end-vram_edit
+    SUB C, vram_end-vram_edit-32
 
     IFL A, C
         SET PC, .video_irq_writestring_copy
@@ -212,13 +255,24 @@ irq_handler:
     ADD SP, 1
 
 .video_irq_writestring_copy:
-    PUSH vram_edit
-    ADD [SP], [vram_cursor]
-    PUSH [Z]
-    PUSH A
-        JSR memmove
-    ADD SP, 3
-    SET PC, .video_irq_updatescreen
+    SET A, vram_edit
+    SET B, [vram_cursor]
+    ADD A, B
+    ADD B, 32
+    IFG B, vram_end-vram_edit-1
+        SET B, vram_end-vram_edit-1
+    SET [vram_cursor], B
+    SET B, [Z]
+.video_irq_writestring_top:
+    IFE [B], 0
+        SET PC, .video_irq_updatescreen
+    SET C, [B]
+    IFC C, 0xFF00
+        BOR C, 0xF000
+    SET [A], C
+    ADD B, 1
+    ADD A, 1
+    SET PC, .video_irq_writestring_top
 
 .video_irq_scrollscreen:
     PUSH [Z]
@@ -273,29 +327,35 @@ irq_handler:
     PUSH X
     PUSH Y
         ADD B, drives
-        SET X, [Z]
-        SET Y, [Z+1]
-        SET A, 2
-        HWI B
+        PUSH B
+            SET X, [Z+2]
+            SET Y, [Z+1]
+            SET A, 2
+            HWI [B]
+        POP B
     POP Y
-    POP Z
+    POP X
     SET PC, .drive_irq_wait
 
 .drive_irq_write:
     PUSH X
     PUSH Y
         ADD B, drives
-        SET X, [Z]
-        SET Y, [Z+1]
-        SET A, 3
-        HWI B
+        PUSH B
+            SET X, [Z+2]
+            SET Y, [Z+1]
+            SET A, 3
+            HWI [B]
+        POP B
     POP Y
-    POP Z
+    POP X
     ; SET PC, .drive_irq_wait ; fall through right below
 
 .drive_irq_wait:
     SET A, 0
-    HWI B
+    PUSH B
+        HWI [B]
+    POP B
     IFE C, 1
         SET PC, .drive_irq_wait
     SET [Z], 0
@@ -555,7 +615,7 @@ find_hardware:
 strlen:
     PUSH A
 .loop_top:
-        IFE A, 0
+        IFE [A], 0
             SET PC, .loop_break
         ADD A, 1
         SET PC, .loop_top
