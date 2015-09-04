@@ -137,3 +137,20 @@ Set RTC Time            0x4003
 Set RTC Date            0x4004
 Set RTC Alarm           0x4005
 Reset RTC Alarm         0x4006
+
+BOOTLOADERS
+===========
+A bootloader must be accessible via a supported storage drive at boot.
+BBOS will look through all connected storage devices, and read in sector 0 of
+each drive. If sector 0 *ENDS* (i.e, at location 0x1FF) in the word 0x55AA,
+this sector will be loaded at address 0. Register 'A' will be set to the
+'DriveNum' which this bootloader was read from (for use in the 'Drive' family
+of BBOS functions), and then BBOS will pass execution to address 0.
+
+In short:
+1) Your bootloader must be built to run at address 0
+2) It must be accessible on the first sector of an attached and supported
+    storage device.
+3) The first sector must end in 0x55AA
+4) Register 'A' will hold the DriveNum
+5) Execution will be passed to address 0

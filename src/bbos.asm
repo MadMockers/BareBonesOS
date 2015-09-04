@@ -12,6 +12,19 @@
 
 .define MAX_DRIVES  8
 
+zero:
+    SET I, boot_rom
+    SET J, bbos_start
+    SET A, bbos_end-bbos_start
+
+cpy_top:
+    SUB A, 1
+    STI [J], [I]
+    IFN A, 0
+        SET PC, cpy_top
+    SET PC, bbos_start
+boot_rom:
+
 .org RUN_AT
 bbos_start:
 SET PC, entry
@@ -624,3 +637,6 @@ strlen:
     RET
 
 bbos_end:
+
+boot_rom_end:
+
