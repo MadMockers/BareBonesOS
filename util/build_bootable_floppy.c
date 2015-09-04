@@ -13,6 +13,8 @@
 #include "bootloader.h"
 
 #define BBOS_MAGIC      0x55AA
+#define MAX_SIZE_WORDS  0xE000
+#define MAX_SIZE_BYTES  (MAX_SIZE_WORDS * 2)
 
 struct info
 {
@@ -31,7 +33,7 @@ int main(int argc, char *argv[])
     if(argc != 3)
     {
         fprintf(stderr, "%s <image> <output file>\n", basename(argv[0]));
-        fprintf(stderr, "Maximum image size is 0xE000 words\n");
+        fprintf(stderr, "Maximum image size is 0x%X words\n", MAX_SIZE_WORDS);
         return 1;
     }
 
@@ -55,9 +57,11 @@ int main(int argc, char *argv[])
     size = lseek(infd, 0, SEEK_END);
     lseek(infd, 0, SEEK_SET);
 
-    if(size > 0xE000)
+    if(size > MAX_SIZE_BYTES)
     {
-        fprintf(stderr, "Image is too large! Maximum size is 0xE000 words (57,344 words, 114,688 octets)\n");
+        fprintf(stderr, "Image is too large! "
+                "Maximum size is 0x%X words (%d words, %d octets)\n",
+                MAX_SIZE_WORDS, MAX_SIZE_WORDS, MAX_SIZE_BYTES);
         return 1;
     }
 
