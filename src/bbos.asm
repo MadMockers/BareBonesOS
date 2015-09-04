@@ -112,11 +112,11 @@ entry:
     SET B, 0
 .loop_top:
     SET A, 0x2003
-    PUSH 0
-    PUSH 0
-    PUSH B
+    SET PUSH, 0
+    SET PUSH, 0
+    SET PUSH, B
         INT 0x4743
-    POP A
+    SET A, POP
     ADD SP, 2
     IFN A, 1
         SET PC, .loop_continue
@@ -127,10 +127,10 @@ entry:
     IFL B, [drive_count]
         SET PC, .loop_top
 .loop_break:
-    PUSH str_no_boot
+    SET PUSH, str_no_boot
     SET PC, .die
 .no_drives:
-    PUSH str_no_drives
+    SET PUSH, str_no_drives
 .die:
     SET A, 0x1004
         INT BBOS_IRQ_MAGIC
@@ -149,21 +149,21 @@ jmp_to_bootloader:
     SET PC, 0
 
 irq_handler_jsr:
-    PUSH A
+    SET PUSH, A
     SET A, 0x4744
 irq_handler:
     IFN A, 0x4743
         IFN A, 0x4744
             RFI
 
-    PUSH Z
+    SET PUSH, Z
     SET Z, SP
     ADD Z, 3
-    PUSH A
-    PUSH B
-    PUSH C
-    PUSH X
-    PUSH J
+    SET PUSH, A
+    SET PUSH, B
+    SET PUSH, C
+    SET PUSH, X
+    SET PUSH, J
 
         SET J, [Z-2]
         IFE J, 0x0000
@@ -179,16 +179,16 @@ irq_handler:
         IFE X, 0x4000
             JSR .rtc_irq
 
-    POP J
-    POP X
-    POP C
-    POP B
-    POP A
-    POP Z
+    SET J, POP
+    SET X, POP
+    SET C, POP
+    SET B, POP
+    SET A, POP
+    SET Z, POP
     IFE A, 0x4743
         RFI
-    POP A
-    RET
+    SET A, POP
+    SET PC, POP
 
 .bbos_irq:
     SET A, [Z]
@@ -202,7 +202,7 @@ irq_handler:
     IFE J, 0x1000
         SET PC, .video_irq_attached
     IFE [display_port], 0xFFFF
-        RET
+        SET PC, POP
 
     IFE J, 0x1001
         SET PC, .video_irq_setcursor
@@ -214,13 +214,13 @@ irq_handler:
         SET PC, .video_irq_writestring
     IFE J, 0x1005
         SET PC, .video_irq_scrollscreen
-    RET
+    SET PC, POP
 
 .video_irq_attached:
     SET [Z], 1
     IFE [display_port], 0xFFFF
         SET [Z], 0
-    RET
+    SET PC, POP
 
 .video_irq_setcursor:
     SET A, [Z+0]
@@ -228,7 +228,7 @@ irq_handler:
     ADD A, [Z+1]
     IFL A, vram_end-vram_edit
         SET [vram_cursor], A
-    RET
+    SET PC, POP
 
 .video_irq_getcursor:
     SET A, [vram_cursor]
@@ -236,7 +236,7 @@ irq_handler:
     MOD [Z], 32
     SET [Z+1], A
     DIV [Z+1], 32
-    RET
+    SET PC, POP
 
 .video_irq_writechar:
     SET A, vram_edit
@@ -263,7 +263,7 @@ irq_handler:
     SUB B, C
     ; b = number of lines to scroll
     DIV B, 32
-    PUSH B
+    SET PUSH, B
         JSR scrollscreen
     ADD SP, 1
 
@@ -288,7 +288,7 @@ irq_handler:
     SET PC, .video_irq_writestring_top
 
 .video_irq_scrollscreen:
-    PUSH [Z]
+    SET PUSH, [Z]
         JSR scrollscreen
     ADD SP, 1
     ; SET PC, .video_irq_updatescreen ; fall through, right below
@@ -297,7 +297,7 @@ irq_handler:
     SET A, 0
     SET B, vram
     HWI [display_port]
-    RET
+    SET PC, POP
 
 .drive_irq:
     IFE J, 0x2000
@@ -305,7 +305,7 @@ irq_handler:
     SET B, [Z]
     IFL B, [drive_count]
         SET PC, .drive_irq_valid
-    RET
+    SET PC, POP
 
 .drive_irq_valid:
     IFE J, 0x2001
@@ -316,11 +316,11 @@ irq_handler:
         SET PC, .drive_irq_read
     IFE J, 0x2004
         SET PC, .drive_irq_write
-    RET
+    SET PC, POP
 
 .drive_irq_getcount:
     SET [Z], [drive_count]
-    RET
+    SET PC, POP
 
 .drive_irq_getstatus:
     SET A, 0
@@ -328,69 +328,69 @@ irq_handler:
     SHL B, 8
     BOR B, C
     SET [Z], B
-    RET
+    SET PC, POP
 
 .drive_irq_getparam:
     SET A, [Z+1]
     SET [A+DRIVE_SECT_SIZE], 512
     SET [A+DRIVE_SECT_COUNT], 1440
-    RET
+    SET PC, POP
 
 .drive_irq_read:
-    PUSH X
-    PUSH Y
+    SET PUSH, X
+    SET PUSH, Y
         ADD B, drives
-        PUSH B
+        SET PUSH, B
             SET X, [Z+2]
             SET Y, [Z+1]
             SET A, 2
             HWI [B]
-        POP B
-    POP Y
-    POP X
+        SET B, POP
+    SET Y, POP
+    SET X, POP
     SET PC, .drive_irq_wait
 
 .drive_irq_write:
-    PUSH X
-    PUSH Y
+    SET PUSH, X
+    SET PUSH, Y
         ADD B, drives
-        PUSH B
+        SET PUSH, B
             SET X, [Z+2]
             SET Y, [Z+1]
             SET A, 3
             HWI [B]
-        POP B
-    POP Y
-    POP X
+        SET B, POP
+    SET Y, POP
+    SET X, POP
     ; SET PC, .drive_irq_wait ; fall through right below
 
 .drive_irq_wait:
     SET A, 0
-    PUSH B
+    SET PUSH, B
         HWI [B]
-    POP B
+    SET B, POP
     IFE C, 1
         SET PC, .drive_irq_wait
     SET [Z], 0
     IFE C, 0
         SET [Z], 1
-    RET
+    SET PC, POP
 
 .keyboard_irq:
     IFE J, 0x3000
         SET PC, .keyboard_irq_attached
     IFE [keyboard_port], 0xFFFF
-        RET
+        SET PC, POP
 
     IFE J, 0x3001
         SET PC, .keyboard_irq_readchar
-    RET
+    SET PC, POP
 
 .keyboard_irq_attached:
     SET [Z], 0
     IFN [keyboard_port], 0xFFFF
         SET [Z], 1
-    RET
+    SET PC, POP
 
 .keyboard_irq_readchar:
     SET A, 1
@@ -399,21 +399,21 @@ irq_handler:
         IFE [Z], 1
             SET PC, .keyboard_irq_readchar
     SET [Z], C
-    RET
+    SET PC, POP
 
 .rtc_irq:
     ; no rtc at this time
     SET [Z], 0
-    RET
+    SET PC, POP
 
 ; A: Class
 ; B: Subclass
 ; Return
 ; A: Port (0xFFFF on fail)
 find_hw_class:
-    PUSH X
-    PUSH Y
-    PUSH Z
+    SET PUSH, X
+    SET PUSH, Y
+    SET PUSH, Z
 
         SET I, A
         SHL I, 4
@@ -433,10 +433,10 @@ find_hw_class:
 .loop_break:
         SET A, Z
 
-    POP Z
-    POP Y
-    POP X
-    RET
+    SET Z, POP
+    SET Y, POP
+    SET X, POP
+    SET PC, POP
 
 find_drives:
 
@@ -459,7 +459,7 @@ find_drives:
     IFL [drive_count], MAX_DRIVES
         SET PC, .loop_top
 .loop_break:
-    RET
+    SET PC, POP
 
 .is_drive:
     ; check for M35FD
@@ -467,18 +467,18 @@ find_drives:
     IFE A, 0x24c5
         IFE B, 0x4fd5
             SET I, 1
-    RET
+    SET PC, POP
 
 ; +2 dest
 ; +1 src
 ; +0 len
 memmove:
-    PUSH Z
+    SET PUSH, Z
     SET Z, SP
     ADD Z, 2
-    PUSH I
-    PUSH J
-    PUSH C
+    SET PUSH, I
+    SET PUSH, J
+    SET PUSH, C
 
         SET I, [Z+2]
         SET J, [Z+1]
@@ -501,11 +501,11 @@ memmove:
         SET PC, .fwd_top
 
 .bkwd:
-        PUSH I
+        SET PUSH, I
             SUB C, 1
             ADD I, C
             ADD J, C
-        POP C
+        SET C, POP
 .bkwd_top:
         STD [I], [J]
         IFE I, C
@@ -513,11 +513,11 @@ memmove:
         SET PC, .bkwd_top
 
 .done:
-    POP C
-    POP J
-    POP I
-    POP Z
-    RET
+    SET C, POP
+    SET J, POP
+    SET I, POP
+    SET Z, POP
+    SET PC, POP
 
 ; +0 Line Count
 ; Returns
@@ -581,52 +581,52 @@ scrollscreen:
 ; Returns
 ; +0: HW Port Number
 find_hardware:
-    set push, z
-    set z, sp
-    add z, 2
-    set push, a
-    set push, b
-    set push, c
-    set push, y
-    set push, x
-    set push, i
+    SET PUSH, Z
+    SET Z, SP
+    ADD Z, 2
+    SET PUSH, A
+    SET PUSH, B
+    SET PUSH, C
+    SET PUSH, Y
+    SET PUSH, X
+    SET PUSH, I
 
-        hwn i
+        HWN I
 
 .loop_top:
-        sub i, 1
+        SUB I, 1
 
-        hwq i
-        ife a, [z+4]
-            ife b, [z+3]
-                ife c, [z+2],
-                    ife x, [z+1]
-                        ife y, [z+0]
-                            set pc, .found
-        ife i, 0
-            set pc, .break_fail
-        set pc, .loop_top
+        HWQ I
+        IFE A, [Z+4]
+            IFE B, [Z+3]
+                IFE C, [Z+2],
+                    IFE X, [Z+1]
+                        IFE Y, [Z+0]
+                            SET PC, .found
+        IFE I, 0
+            SET PC, .break_fail
+        SET PC, .loop_top
 .found:
-        set [z+0], i
-        set pc, .ret
+        SET [Z+0], I
+        SET PC, .ret
 .break_fail:
-        set [z+0], 0xFFFF
+        SET [Z+0], 0xFFFF
 .ret:
-    set i, pop
-    set x, pop
-    set y, pop
-    set c, pop
-    set b, pop
-    set a, pop
-    set z, pop
+    SET I, POP
+    SET X, POP
+    SET Y, POP
+    SET C, POP
+    SET B, POP
+    SET A, POP
+    SET Z, POP
 
-    set pc, pop
+    SET PC, POP
 
 ; A: str
 ; Return
 ; A: len
 strlen:
-    PUSH A
+    SET PUSH, A
 .loop_top:
         IFE [A], 0
             SET PC, .loop_break
@@ -634,7 +634,7 @@ strlen:
         SET PC, .loop_top
 .loop_break:
     SUB A, POP
-    RET
+    SET PC, POP
 
 bbos_end:
 
