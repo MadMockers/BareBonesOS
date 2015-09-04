@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     if(argc != 3)
     {
         fprintf(stderr, "%s <image> <output file>\n", basename(argv[0]));
-        fprintf(stderr, "Maximum image size is 0xFD00 bytes\n");
+        fprintf(stderr, "Maximum image size is 0xE000 bytes\n");
         return 1;
     }
 
@@ -55,9 +55,9 @@ int main(int argc, char *argv[])
     size = lseek(infd, 0, SEEK_END);
     lseek(infd, 0, SEEK_SET);
 
-    if(size >= 0xFD00)
+    if(size > 0xE000)
     {
-        fprintf(stderr, "Image is too large! Maximum size is 0xFD00 words (64,768 words, 129,536 octets)\n");
+        fprintf(stderr, "Image is too large! Maximum size is 0xE000 words (57,344 words, 114,688 octets)\n");
         return 1;
     }
 
