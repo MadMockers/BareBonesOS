@@ -12,6 +12,8 @@
 
 .define MAX_DRIVES  8
 
+.define VRAM_SIZE   384
+
 zero:
     SET I, boot_rom
     SET J, bbos_start
@@ -25,10 +27,15 @@ cpy_top:
     SET PC, bbos_start
 boot_rom:
 
+.org RUN_AT-VRAM_SIZE
+vram:
+vram_edit:
 .org RUN_AT
+vram_end:
 bbos_start:
 SET PC, entry
-vram:
+
+boot_str1:
 .dat        0x4042
 .dat        0x4061
 .dat        0x4072
@@ -48,7 +55,8 @@ vram:
 .dat        0x404F
 .dat        0x4053
 .dat        0x4029
-.reserve    13
+.dat        0
+boot_str2:
 .dat        0x2042
 .dat        0x2079
 .dat        0x2020
@@ -62,10 +70,7 @@ vram:
 .dat        0x2065
 .dat        0x2072
 .dat        0x2073
-.reserve    19
-vram_edit:
-.reserve    320
-vram_end:
+.dat        0
 
 vram_cursor:
 .dat        0
@@ -84,6 +89,8 @@ keyboard_port:
 entry:
     SET SP, 0
 
+    IAS irq_handler
+
     ; find display
     SET PUSH, LEM_ID&0xFFFF
     SET PUSH, LEM_ID>>16
@@ -96,6 +103,16 @@ entry:
     SET A, 0
     SET B, vram
     HWI [display_port]
+    
+    SET A, 0x1004
+    SET PUSH, boot_str1
+        INT BBOS_IRQ_MAGIC
+    ADD SP, 1
+
+    SET A, 0x1004
+    SET PUSH, boot_str2
+        INT BBOS_IRQ_MAGIC
+    ADD SP, 1
 
     JSR find_drives
 
@@ -103,8 +120,6 @@ entry:
     SET B, KEYBOARD_SUBCLASS
     JSR find_hw_class
     SET [keyboard_port], A
-
-    IAS irq_handler
 
     IFE [drive_count], 0
         SET PC, .no_drives
@@ -192,11 +207,11 @@ irq_handler:
 
 .bbos_irq:
     SET A, [Z]
-    SET [Z+BBOS_START_ADDR], bbos_start
-    SET [Z+BBOS_END_ADDR], bbos_end
-    SET [Z+BBOS_INT_HANDLER], irq_handler
-    SET [Z+BBOS_API_HANDLER], irq_handler_jsr
-    RFI
+    SET [A+BBOS_START_ADDR], bbos_start-VRAM_SIZE
+    SET [A+BBOS_END_ADDR], bbos_end
+    SET [A+BBOS_INT_HANDLER], irq_handler
+    SET [A+BBOS_API_HANDLER], irq_handler_jsr
+    SET PC, POP
 
 .video_irq:
     IFE J, 0x1000
