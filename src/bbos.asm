@@ -538,55 +538,55 @@ memmove:
 ; Returns
 ; None
 scrollscreen:
-    push z
-    set z, sp
-    add z, 2
-    push a
-    push b
-    push c
-    push i
+    SET PUSH,  Z
+    SET Z, SP
+    ADD Z, 2
+    SET PUSH,  A
+    SET PUSH,  B
+    SET PUSH,  C
+    SET PUSH,  I
 
-        set b, vram_edit
+        SET B, vram_edit
 
-        set c, [z+0]
-        mul c, 32
+        SET C, [Z+0]
+        MUL C, 32
 
-        sub [vram_cursor], c
-        ifg [vram_cursor], vram_end-vram_edit-1
-            set [vram_cursor], 0
+        SUB [vram_cursor], C
+        IFG [vram_cursor], vram_end-vram_edit-1
+            SET [vram_cursor], 0
 
-        set i, c
-        add i, b
+        SET I, C
+        ADD I, B
 
-        push b
-        push i
-        push vram_end-vram_edit
-        sub [sp], c
-            jsr memmove
-        add sp, 3
+        SET PUSH,  B
+        SET PUSH,  I
+        SET PUSH,  vram_end-vram_edit
+        SUB [SP], C
+            JSR memmove
+        ADD SP, 3
 
-        add b, vram_end-vram_edit
-        push b
-            sub b, c
-        pop c
+        ADD B, vram_end-vram_edit
+        SET PUSH,  B
+            SUB B, C
+        SET C, POP
 
 .clear_top:
-        ife b, c
-            set pc, .clear_break
-        set [b], 0
-        add b, 1
-        set pc, .clear_top
+        IFE B, C
+            SET PC, .clear_break
+        SET [B], 0
+        ADD B, 1
+        SET PC, .clear_top
 .clear_break:
 
-        set a, 0
-        hwi [display_port]
+        SET A, 0
+        HWI [display_port]
 
-    pop i
-    pop c
-    pop b
-    pop a
-    pop z
-    ret
+    SET I, POP
+    SET C, POP
+    SET B, POP
+    SET A, POP
+    SET Z, POP
+    RET
 
 ; +4: HW ID Lo
 ; +3: HW ID Hi
