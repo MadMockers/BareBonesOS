@@ -33,59 +33,6 @@ vram_edit:
 .org RUN_AT
 vram_end:
 bbos_start:
-SET PC, entry
-
-boot_str1:
-.dat        0x4042
-.dat        0x4061
-.dat        0x4072
-.dat        0x4065
-.dat        0x4042
-.dat        0x406F
-.dat        0x406E
-.dat        0x4065
-.dat        0x4073
-.dat        0x4020
-.dat        0x404F
-.dat        0x4053
-.dat        0x4020
-.dat        0x4028
-.dat        0x4042
-.dat        0x4042
-.dat        0x404F
-.dat        0x4053
-.dat        0x4029
-.dat        0
-boot_str2:
-.dat        0x2042
-.dat        0x2079
-.dat        0x2020
-.dat        0x204D
-.dat        0x2061
-.dat        0x2064
-.dat        0x204D
-.dat        0x206F
-.dat        0x2063
-.dat        0x206B
-.dat        0x2065
-.dat        0x2072
-.dat        0x2073
-.dat        0
-
-vram_cursor:
-.dat        0
-display_port:
-.dat        0xFFFF
-
-; support up to 8 drives
-drives:
-.reserve    MAX_DRIVES
-drive_count:
-.dat        0
-
-keyboard_port:
-.dat        0
-
 entry:
     SET SP, 0
 
@@ -152,11 +99,6 @@ entry:
     ADD SP, 1
 .die_loop:
     SET PC, .die_loop
-
-str_no_boot:
-.asciiz "No bootable media found"
-str_no_drives:
-.asciiz "No drives connected"
 
 jmp_to_bootloader:
     SET A, B    ; Set A to the drive we found the bootloader on
@@ -650,6 +592,63 @@ strlen:
 .loop_break:
     SUB A, POP
     SET PC, POP
+
+boot_str1:
+.dat        0x4042
+.dat        0x4061
+.dat        0x4072
+.dat        0x4065
+.dat        0x4042
+.dat        0x406F
+.dat        0x406E
+.dat        0x4065
+.dat        0x4073
+.dat        0x4020
+.dat        0x404F
+.dat        0x4053
+.dat        0x4020
+.dat        0x4028
+.dat        0x4042
+.dat        0x4042
+.dat        0x404F
+.dat        0x4053
+.dat        0x4029
+.dat        0
+boot_str2:
+.dat        0x2042
+.dat        0x2079
+.dat        0x2020
+.dat        0x204D
+.dat        0x2061
+.dat        0x2064
+.dat        0x204D
+.dat        0x206F
+.dat        0x2063
+.dat        0x206B
+.dat        0x2065
+.dat        0x2072
+.dat        0x2073
+.dat        0
+
+vram_cursor:
+.dat        0
+display_port:
+.dat        0xFFFF
+
+; support up to 8 drives
+drives:
+.reserve    MAX_DRIVES
+drive_count:
+.dat        0
+
+keyboard_port:
+.dat        0
+
+str_no_boot:
+.asciiz "No bootable media found"
+str_no_drives:
+.asciiz "No drives connected"
+
 
 bbos_end:
 
