@@ -1,24 +1,36 @@
 
 #include "bbos.inc.asm"
 
+.define DEBUG
+
 .define BL_SIZE loader_end-loader_entry
+
+.define DEBUG_BASE_ADDR 0xE000
+
+.define sector_start 509
+.define sector_end 510
+.define magic 511
 
 copy_start:
 start:
     PUSH A  ; A has drive to load off
         ; get position of BBOS
         SET A, 0x0000
-        SUB SP, 4
+        SUB SP, BBOSINFO_SIZE
         SET B, SP
         PUSH B
             INT BBOS_IRQ_MAGIC
         ADD SP, 1
-        SET I, physical_start
         SET J, [B+BBOS_START_ADDR]
         SUB J, BL_SIZE
+.ifdef DEBUG
+        SET J, DEBUG_BASE_ADDR
+.endif
+
+        SET I, physical_start
         SET Z, J
         SET A, BL_SIZE
-        ADD SP, 4
+        ADD SP, BBOSINFO_SIZE
 .copy_top:
         SUB A, 1
         STI [J], [I]
@@ -29,6 +41,9 @@ copy_end:
 
 physical_start:
 
+.ifdef DEBUG
+.org DEBUG_BASE_ADDR
+.endif
 loader_entry:
     SET J, PC
     POP B
@@ -83,10 +98,20 @@ die:
 
 write_screen:
     PUSH A
+        ; check display is attached
+        SET A, 0x1000
+        SUB SP, 1
+            INT BBOS_IRQ_MAGIC
+        POP A
+        IFE A, 0
+            SET PC, .done
+
+        ; write string
         SET A, 0x1004
         PUSH [SP+2]
             INT BBOS_IRQ_MAGIC
         ADD SP, 1
+.done:
     POP A
     RET
     
@@ -97,9 +122,3 @@ title_str:
 loader_end:
 end:
 
-.org 509
-sector_start:
-.org 510
-sector_end:
-.org 511
-magic:

@@ -48,7 +48,7 @@ struct bbosinfo
     word API_Handler
 }
 
-struct DriveParam
+struct drive_param
 {
     word SectorSize
     word SectorCount
@@ -75,10 +75,11 @@ you need to do this.
 
 Custom Interrupt Handler Example
 --------------------------------
-.define BBOS_START_ADDR     0
-.define BBOS_END_ADDR       1
-.define BBOS_INT_HANDLER    2
-.define BBOS_API_HANDLER    3
+.define BBOS_VERSION        0
+.define BBOS_START_ADDR     1
+.define BBOS_END_ADDR       2
+.define BBOS_INT_HANDLER    3
+.define BBOS_API_HANDLER    4
 bbos_struct:
     .reserve 4
 start:
@@ -103,41 +104,6 @@ my_interrupt_handler:
     RFI                     ; return from interrupt
 -----------------
 
-FUNCTION TABLE
-==============
-Name                    A       Args                    Returns
-------------------------------------------------------------------------
-Get BBOS Info           0x0000  *bbosinfo               None
-
--- Video        
-Screen Attached         0x1000  OUT Attached            Attached
-Set Cursor Pos          0x1001  X, Y                    None
-Get Cursor Pos          0x1002  OUT X, OUT Y            X, Y
-Write Char              0x1003  Char (with format)      None
-Write String            0x1004  StringZ (with format)   None
-Scroll Screen           0x1005  Num lines to scroll     None
-
--- Drive
-Get Drive Count         0x2000  OUT Drive Count         Drive Count
-Check Drive Status      0x2001  DriveNum                StatusCode
-Get Drive Parameters    0x2002  *DriveParams, DriveNum  None
-Read Drive Sector       0x2003  Sector, Ptr, DriveNum   Success
-Write Drive Sector      0x2004  Sector, Ptr, DriveNum   Success
-
--- Keyboard
-Keyboard Attached       0x3000  OUT Attached            Attached
-Read Char               0x3001  Blocking                Char
-
-RTC Specification is undefined as there is currently no RTC hardware
--- RTC
-RTC Attached            0x4000  OUT Attached            Attached (Always false currently)
-Read RTC Time           0x4001
-Read RTC Date           0x4002
-Set RTC Time            0x4003
-Set RTC Date            0x4004
-Set RTC Alarm           0x4005
-Reset RTC Alarm         0x4006
-
 BOOTLOADERS
 ===========
 A bootloader must be accessible via a supported storage drive at boot.
@@ -154,3 +120,218 @@ In short:
 3) The first sector must end in 0x55AA
 4) Register 'A' will hold the DriveNum
 5) Execution will be passed to address 0
+
+FUNCTION TABLE
+==============
+Name                    A       Args                    Returns
+------------------------------------------------------------------------
+Get BBOS Info           0x0000  *bbosinfo               None
+
+-- Video        
+Screen Attached         0x1000  OUT Attached            Attached
+Set Cursor Pos          0x1001  X, Y                    None
+Get Cursor Pos          0x1002  OUT X, OUT Y            X, Y
+Write Char              0x1003  Char, MoveCursor        None
+Write String            0x1004  StringZ (with format)   None
+Scroll Screen           0x1005  Num lines to scroll     None
+
+-- Drive
+Get Drive Count         0x2000  OUT Drive Count         Drive Count
+Check Drive Status      0x2001  DriveNum                StatusCode
+Get Drive Parameters    0x2003  *DriveParams, DriveNum  None
+Read Drive Sector       0x2003  Sector, Ptr, DriveNum   Success
+Write Drive Sector      0x2004  Sector, Ptr, DriveNum   Success
+
+-- Keyboard
+Keyboard Attached       0x3000  OUT Attached            Attached
+Read Character          0x3001  Blocking                Char
+
+RTC Specification is undefined as there is currently no RTC hardware
+-- RTC
+RTC Attached            0x4000  OUT Attached            Attached (Always false currently)
+Read RTC Time           0x4001
+Read RTC Date           0x4002
+Set RTC Time            0x4003
+Set RTC Date            0x4004
+Set RTC Alarm           0x4005
+Reset RTC Alarm         0x4006
+
+FUNCTION DOCUMENTATION
+======================
+'Get BBOS Info'
+---------------
+Arguments: struct bbosinfo*
+Returns: None
+Since: v1.0
+
+Provides the information available in the 'bbosinfo' struct, namely the
+BBOS version, position of BBOS in memory, the address of the BBOS
+interrupt handler, and the address of the BBOS API handler
+(description in "CO-EXISTING WITH BBOS").
+The BBOS version has the major version in the high octet, and the minor
+version in the low octet.
+This function takes a single argument which is the address to a
+'bbosinfo' struct, which is filled in by this function.
+
+'Screen Attached'
+-----------------
+Arguments: None (1 placeholder)
+Returns: Attached
+Since: v1.0
+
+If BBOS identified supported display hardware, this function
+returns 1 in Attached, otherwise it returns 0.
+If this function returns 0, calling any other 'video' related function
+has undefined results.
+
+'Set Cursor Pos'
+----------------
+Arguments: X, Y
+Returns: None
+Since: v1.0
+
+Sets the position of the cursor on the screen. Coordinate (0, 0) is
+the top left corner of the screen.
+
+'Get Cursor Pos'
+----------------
+Arguments: None (2 placeholder)
+Returns: X, Y
+Since: v1.0
+
+Gets the position of the cursor on the screen. Coordinate (0, 0) is
+the top left corner of the screen.
+
+'Write Char'
+------------
+Arguments: Char, MoveCursor
+Returns: None
+Since: v1.0
+
+Writes the provided character to the position of the cursor on screen.
+If the high 9 bits of 'Char' are unset (i.e, the character has no format),
+a default format of 0xF000 is applied, which is white on black.
+If 'MoveCursor' is set to a non zero value, the cursor position is
+progressed by 1.
+
+'Write String'
+--------------
+Arguments: StringZ
+Returns: None
+Since: v1.0
+
+'StringZ' refers to a zero terminated string, where is char is 16 bits.
+As each character is written, if the high 9 bits of are unset (i.e, the
+character has no format), a default format of 0xF000 is applied, which
+is white on black.
+The cursor is progressed by the number of characters in the string. If the
+string runs off the buttom of the screen, the screen is scrolled in order
+to display the entire string.
+
+'Scroll Screen'
+---------------
+Arguments: Lines
+Returns: None
+Since: v1.0
+
+Scrolls the screen, providing more space at the bottom of the screen.
+
+'Get Drive Count'
+-----------------
+Arguments: None (1 placeholder)
+Returns: DriveCount
+Since: v1.0
+
+Returns the number of attached supported drives that were identified.
+If this function returns 0, using other 'Drive' related functions have
+undefined results.
+
+'Check Drive Status'
+--------------------
+Arguments: DriveNum
+Returns: Status
+Since: v1.0
+
+Returns the status of the drive specified by the DriveNum argument.
+The status return value has 2 values packed into it. The high octet
+is the current state of the drive. The low octet is the last error.
+The state values are:
+NO_MEDIA:   No media is present in the drives (for drives that offer
+    removable media)
+READY:      The drive is ready to receive read and write instructions.
+READY_WP:   The drive is write-protected. It is ready to receive
+    read instructions.
+BUSY:       The drive is currently busy with a previous instruction.
+
+The error values are:
+NONE:       There has not been an error since last check
+BUSY:       A read or write instruction was given while the drive was
+    busy.
+NO_MEDIA:   A read or write instruction was given while the drive had
+    no media (for drives that offer removable media).
+PROTECTED:  A write instruction was issued to a write-protected drive.
+EJECT:      Removable media was ejected while an operation was in progress.
+BAD_SECTOR: A read or write operation failed due to a bad sector.
+BROKEN:     Unknown serious error
+
+'Get Drive Parameters'
+----------------------
+Arguments: struct drive_params*, DriveNum
+Returns: None
+Since: v1.0
+
+Gets the information for the specified drive. The first argument is a
+pointer to 'drive_params' struct, which contains the size of the sectors
+on the drive, and the number of sectors.
+
+'Read Drive Sector'
+-------------------
+Arguments: Sector, Pointer, DriveNum
+Returns: Success
+Since: v1.0
+
+Reads 'Sector' from the drive specified by 'DriveNum'. 'Pointer' is the
+address of memory, which will have SectorSize words written into it.
+On success, 'Success' is 1, otherwise 'Success' is 0. On failure,
+the last error can be obtained via the 'Check Drive Status' function.
+
+'Write Drive Sector'
+--------------------
+Arguments: Sector, Pointer, DriveNum
+Returns: Success
+Since: v1.0
+
+Writes SectorSize words from the memory specified at 'Pointer' to the
+sector specified by 'Sector' on the drive specified by 'DriveNum'.
+On success, 'Success' is 1, otherwise 'Success' is 0. On failure,
+the last error can be obtained via the 'Check Drive Status' function.
+
+'Keyboard Attached'
+-------------------
+Arguments: None (1 placeholder)
+Returns: Attached
+Since: v1.0
+
+Returns 1 if a supported keyboard is attached. If a supported keyboard
+is not attached, calling other keyboard functions has undefined behaviour.
+
+'Read Character'
+----------------
+Arguments: Blocking
+Returns: Char
+Since: v1.0
+
+Reads a character from the keyboard buffer. If the buffer is empty and
+'Blocking' is 0, the value 0 is returned in 'Char'. Otherwise if
+'Blocking' is 1, the function will wait for a key to be pressed.
+
+'RTC Attached'
+--------------
+Arguments: None (1 placeholder)
+Returns: Attached
+Since: v1.0
+
+Returns 1 if a supported real time clock is attached.
+
+Other RTC functions are currently undefined as there is currently no
+RTC hardware specification.

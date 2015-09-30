@@ -47,6 +47,11 @@ entry:
         JSR find_hardware
     SET [display_port], POP
     ADD SP, 4
+
+    ; Skip display init if no display
+    IFE [display_port], 0xFFFF
+        SET PC, no_display
+
     SET A, 0
     SET B, vram
     HWI [display_port]
@@ -60,6 +65,8 @@ entry:
     SET PUSH, boot_str2
         INT BBOS_IRQ_MAGIC
     ADD SP, 1
+
+no_display:
 
     JSR find_drives
 
@@ -149,6 +156,7 @@ irq_handler:
 
 .bbos_irq:
     SET A, [Z]
+    SET [A+BBOS_VERSION], 0x0100
     SET [A+BBOS_START_ADDR], bbos_start-VRAM_SIZE
     SET [A+BBOS_END_ADDR], bbos_end
     SET [A+BBOS_INT_HANDLER], irq_handler
@@ -171,6 +179,7 @@ irq_handler:
         SET PC, .video_irq_writestring
     IFE J, 0x1005
         SET PC, .video_irq_scrollscreen
+
     SET PC, POP
 
 .video_irq_attached:
@@ -198,11 +207,14 @@ irq_handler:
 .video_irq_writechar:
     SET A, vram_edit
     ADD A, [vram_cursor]
-    SET B, [Z]
+    SET B, [Z+0]
     AND B, 0xFF00
     IFE B, 0
-        BOR [Z], 0xF000
-    SET [A], [Z]
+        BOR [Z+0], 0xF000
+    SET [A], [Z+0]
+    IFE [Z+1], 1
+        IFL [vram_cursor], vram_edit-vram_end-1
+            ADD [vram_cursor], 1
     SET PC, .video_irq_updatescreen
 
 .video_irq_writestring:
@@ -248,7 +260,7 @@ irq_handler:
     SET PUSH, [Z]
         JSR scrollscreen
     ADD SP, 1
-    ; SET PC, .video_irq_updatescreen ; fall through, right below
+;    SET PC, .video_irq_updatescreen
 
 .video_irq_updatescreen:
     SET A, 0
@@ -283,6 +295,7 @@ irq_handler:
     SET A, 0
     HWI B
     SHL B, 8
+    AND C, 0xFF
     BOR B, C
     SET [Z], B
     SET PC, POP
