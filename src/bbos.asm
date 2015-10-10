@@ -541,7 +541,7 @@ scrollscreen:
     SET B, POP
     SET A, POP
     SET Z, POP
-    RET
+    SET PC, POP
 
 ; +4: HW ID Lo
 ; +3: HW ID Hi
