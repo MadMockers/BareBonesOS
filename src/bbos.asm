@@ -62,7 +62,7 @@ entry:
     
     SET A, 0x1004
     SET PUSH, boot_str1
-    SET PUSH, 0
+    SET PUSH, 1
         INT BBOS_IRQ_MAGIC
     ADD SP, 2
 
@@ -216,9 +216,7 @@ irq_handler:
 .video_irq_writechar:
     SET A, vram_edit
     ADD A, [vram_cursor]
-    SET B, [Z+1]
-    AND B, 0xFF00
-    IFE B, 0
+    IFC [Z+1], 0xFF00
         BOR [Z+1], 0xF000
     SET [A], [Z+1]
     IFE [Z+0], 1
