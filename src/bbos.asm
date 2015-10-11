@@ -351,7 +351,7 @@ irq_handler:
         HWI [B]
     SET A, B
     SET B, POP
-    IFE A, 3
+    IFE A, DRIVE_STATE_BUSY
         SET PC, .drive_irq_wait
     SET [Z+0], 0
     IFE C, 0
