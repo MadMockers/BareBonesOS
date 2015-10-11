@@ -59,12 +59,17 @@ CO-EXISTING WITH BBOS
 This section is for people who want to use BBOS functionality. If this isn't
 you, you can just ignore the existance of BBOS once you're code is executing.
 
-If you wish to use BBOS, your code needs to co-exist with it.
+If you wish to use BBOS, your code needs to co-exist with it. Firstly you need
+to confirm that BBOS is on the system you're running on (your code may have
+been loaded by something else). To do this, before you set your interrupt
+handler (via the IAS instruction), call "Get BBOS Info", however make sure the
+placeholder argument is 0 (i.e, SET PUSH, 0). If this argument is still 0
+after the interrupt, then BBOS is not on this system.
 The bbosinfo struct from the "Get BBOS Info" call gives you all the information
-you need to do this.
- - All code within 'Address_Start' and 'Address_End' must remain untouched, as
-    this is where BBOS has positioned itself in memory. Modifying this memory
-    region will have undefined results
+you needed to co-exist
+ - All memory within 'Address_Start' and 'Address_End' must remain untouched,
+    as this is where BBOS has positioned itself in memory. Modifying this
+    memory region will have undefined results
  - BBOS reserves all interrupt messages starting with octet 0x47 (i.e, 0x47XX)
  - If you wish to set your own interrupt handler, you need to pass interrupts
     with the message "0x47XX" to the address 'Interrupt_Handler' via a
