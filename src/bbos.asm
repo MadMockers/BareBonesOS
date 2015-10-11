@@ -6,6 +6,8 @@
 .define LEM_ID  0x7349f615
 .define LEM_VER 0x1802
 .define LEM_MFR 0x1c6c8b36
+.define LEM_WID 32
+.define LEM_HGT 12
 
 .define HID_CLASS           3
 .define KEYBOARD_SUBCLASS   0
@@ -179,6 +181,8 @@ irq_handler:
         SET PC, .video_irq_writestring
     IFE J, 0x1005
         SET PC, .video_irq_scrollscreen
+    IFE J, 0x1006
+        SET PC, .video_irq_getsize
 
     SET PC, POP
 
@@ -190,7 +194,7 @@ irq_handler:
 
 .video_irq_setcursor:
     SET A, [Z+0]
-    MUL A, 32
+    MUL A, LEM_WID
     ADD A, [Z+1]
     IFL A, vram_end-vram_edit
         SET [vram_cursor], A
@@ -199,9 +203,9 @@ irq_handler:
 .video_irq_getcursor:
     SET A, [vram_cursor]
     SET [Z], A
-    MOD [Z], 32
+    MOD [Z], LEM_WID
     SET [Z+1], A
-    DIV [Z+1], 32
+    DIV [Z+1], LEM_WID
     SET PC, POP
 
 .video_irq_writechar:
@@ -223,7 +227,7 @@ irq_handler:
 
     ; calculate if string will fit in buffer
     SET C, [vram_cursor]
-    SUB C, vram_end-vram_edit-32
+    SUB C, vram_end-vram_edit-LEM_WID
 
     IFL A, C
         SET PC, .video_irq_writestring_copy
@@ -231,7 +235,7 @@ irq_handler:
     SET B, A
     SUB B, C
     ; b = number of lines to scroll
-    DIV B, 32
+    DIV B, LEM_WID
     SET PUSH, B
         JSR scrollscreen
     ADD SP, 1
@@ -240,7 +244,7 @@ irq_handler:
     SET A, vram_edit
     SET B, [vram_cursor]
     ADD A, B
-    ADD B, 32
+    ADD B, LEM_WID
     IFG B, vram_end-vram_edit-1
         SET B, vram_end-vram_edit-1
     SET [vram_cursor], B
@@ -266,6 +270,11 @@ irq_handler:
     SET A, 0
     SET B, vram
     HWI [display_port]
+    SET PC, POP
+
+.video_irq_getsize:
+    SET [Z+1], LEM_WID
+    SET [Z], LEM_HGT
     SET PC, POP
 
 .drive_irq:
@@ -504,7 +513,7 @@ scrollscreen:
         SET B, vram_edit
 
         SET C, [Z+0]
-        MUL C, 32
+        MUL C, LEM_WID
 
         SUB [vram_cursor], C
         IFG [vram_cursor], vram_end-vram_edit-1
