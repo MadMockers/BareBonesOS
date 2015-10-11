@@ -349,8 +349,9 @@ irq_handler:
     SET A, 0
     SET PUSH, B
         HWI [B]
+    SET A, B
     SET B, POP
-    IFE C, 1
+    IFE A, 3
         SET PC, .drive_irq_wait
     SET [Z+0], 0
     IFE C, 0
