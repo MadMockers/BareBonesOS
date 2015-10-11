@@ -56,22 +56,24 @@ struct drive_param
 
 CO-EXISTING WITH BBOS
 =====================
-This section is for people who want to use BBOS functionality. If this isn't you,
-you can just ignore the existance of BBOS once you're code is executing.
+This section is for people who want to use BBOS functionality. If this isn't
+you, you can just ignore the existance of BBOS once you're code is executing.
 
 If you wish to use BBOS, your code needs to co-exist with it.
 The bbosinfo struct from the "Get BBOS Info" call gives you all the information
 you need to do this.
- - All code within 'Address_Start' and 'Address_End' must remain untouched, as this
-    is where BBOS has positioned itself in memory. Modifying this memory region
-    will have undefined results
+ - All code within 'Address_Start' and 'Address_End' must remain untouched, as
+    this is where BBOS has positioned itself in memory. Modifying this memory
+    region will have undefined results
  - BBOS reserves all interrupt messages starting with octet 0x47 (i.e, 0x47XX)
- - If you wish to set your own interrupt handler, you need to pass interrupts with
-    the message "0x47XX" to the address 'Interrupt_Handler' via a SET PC (not a JSR)
- - Jumping to bbosinfo.Interrupt_Handler should only be done in the situation described
-    in the previous point (example below). This is problematic as you can't easily
-    invoke an interrupt from inside an interrupt handler, and thus would not be able to
-    use BBOS functionality. To resolve this, INT 0x4743 can be replaced with JSR bbosinfo.API_Handler.
+ - If you wish to set your own interrupt handler, you need to pass interrupts
+    with the message "0x47XX" to the address 'Interrupt_Handler' via a
+    SET PC, Interrupt_Handler (not a JSR Interrupt_Handler)
+ - Jumping to bbosinfo.Interrupt_Handler should only be done in the situation
+    described in the previous point (example below). This is problematic as
+    you can't easily invoke an interrupt from inside an interrupt handler, and
+    thus would not be able to use BBOS functionality. To resolve this, 
+    INT 0x4743 can be replaced with JSR bbosinfo.API_Handler.
 
 Custom Interrupt Handler Example
 --------------------------------
@@ -266,18 +268,18 @@ The status return value has 2 values packed into it. The high octet
 is the current state of the drive. The low octet is the last error.
 The state values are:
 NO_MEDIA:   No media is present in the drives (for drives that offer
-    removable media)
+            removable media)
 READY:      The drive is ready to receive read and write instructions.
 READY_WP:   The drive is write-protected. It is ready to receive
-    read instructions.
+            read instructions.
 BUSY:       The drive is currently busy with a previous instruction.
 
 The error values are:
 NONE:       There has not been an error since last check
 BUSY:       A read or write instruction was given while the drive was
-    busy.
+            busy.
 NO_MEDIA:   A read or write instruction was given while the drive had
-    no media (for drives that offer removable media).
+            no media (for drives that offer removable media).
 PROTECTED:  A write instruction was issued to a write-protected drive.
 EJECT:      Removable media was ejected while an operation was in progress.
 BAD_SECTOR: A read or write operation failed due to a bad sector.
