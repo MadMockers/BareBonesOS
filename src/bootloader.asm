@@ -109,8 +109,9 @@ write_screen:
         ; write string
         SET A, 0x1004
         PUSH [SP+2]
+        PUSH 1
             INT BBOS_IRQ_MAGIC
-        ADD SP, 1
+        ADD SP, 2
 .done:
     POP A
     RET

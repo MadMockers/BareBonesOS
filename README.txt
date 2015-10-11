@@ -132,11 +132,11 @@ Get BBOS Info           0x0000  OUT *bbosinfo           *bbosinfo       1.0
 -- Video        
 Screen Attached         0x1000  OUT Attached            Attached        1.0
 Set Cursor Pos          0x1001  X, Y                    None            1.0
-Get Cursor Pos          0x1002  OUT Y, OUT X            X, Y            1.0
+Get Cursor Pos          0x1002  OUT X, OUT Y            Y, X            1.0
 Write Char              0x1003  Char, MoveCursor        None            1.0
-Write String            0x1004  StringZ (with format)   None            1.0
+Write String            0x1004  StringZ, NewLine        None            1.0
 Scroll Screen           0x1005  Num lines to scroll     None            1.0
-Get Screen Size         0x1006  OUT Height, OUT Width   Width, Height   1.1
+Get Screen Size         0x1006  OUT Width, OUT Height   Height, Width   1.0
 
 -- Drive
 Get Drive Count         0x2000  OUT Drive Count         Drive Count     1.0
@@ -199,7 +199,7 @@ the top left corner of the screen.
 'Get Cursor Pos'
 ----------------
 Arguments: None (2 placeholder)
-Returns: X, Y
+Returns: Y, X
 Since: v1.0
 
 Gets the position of the cursor on the screen. Coordinate (0, 0) is
@@ -219,7 +219,7 @@ progressed by 1.
 
 'Write String'
 --------------
-Arguments: StringZ
+Arguments: StringZ, NewLine
 Returns: None
 Since: v1.0
 
@@ -229,7 +229,8 @@ character has no format), a default format of 0xF000 is applied, which
 is white on black.
 The cursor is progressed by the number of characters in the string. If the
 string runs off the buttom of the screen, the screen is scrolled in order
-to display the entire string.
+to display the entire string. If 'NewLine' is non zero, the cursor will
+be rounded up to the next line after being progressed.
 
 'Scroll Screen'
 ---------------
@@ -243,7 +244,7 @@ Scrolls the screen, providing more space at the bottom of the screen.
 ---------------
 Arguments: None (2 placeholder)
 Returns: Width, Height
-Since: v1.1
+Since: v1.0
 
 Gets size of the screen (measured in characters).
 

@@ -1,7 +1,7 @@
 
 #include "bbos.inc.asm"
 
-.define VERSION 0x0101
+.define VERSION 0x0100
 
 .define RUN_AT  0xF000
 
@@ -62,13 +62,15 @@ entry:
     
     SET A, 0x1004
     SET PUSH, boot_str1
+    SET PUSH, 0
         INT BBOS_IRQ_MAGIC
-    ADD SP, 1
+    ADD SP, 2
 
     SET A, 0x1004
     SET PUSH, boot_str2
+    SET PUSH, 1
         INT BBOS_IRQ_MAGIC
-    ADD SP, 1
+    ADD SP, 2
 
 no_display:
 
@@ -106,8 +108,9 @@ no_display:
     SET PUSH, str_no_drives
 .die:
     SET A, 0x1004
+    SET PUSH, 1
         INT BBOS_IRQ_MAGIC
-    ADD SP, 1
+    ADD SP, 2
 .die_loop:
     SET PC, .die_loop
 
@@ -204,10 +207,10 @@ irq_handler:
 
 .video_irq_getcursor:
     SET A, [vram_cursor]
-    SET [Z+0], A
-    MOD [Z+0], LEM_WID
     SET [Z+1], A
-    DIV [Z+1], LEM_WID
+    MOD [Z+1], LEM_WID
+    SET [Z+0], A
+    DIV [Z+0], LEM_WID
     SET PC, POP
 
 .video_irq_writechar:
@@ -224,33 +227,67 @@ irq_handler:
     SET PC, .video_irq_updatescreen
 
 .video_irq_writestring:
-    SET A, [Z+0]
+    SET A, [Z+1]
     JSR strlen
 
     ; calculate if string will fit in buffer
-    SET C, [vram_cursor]
-    SUB C, vram_end-vram_edit-LEM_WID
+    SET C, vram_end-vram_edit
+    SUB C, [vram_cursor]
 
     IFL A, C
-        SET PC, .video_irq_writestring_copy
+        SET PC, .video_irq_writestring_update_cursor
 
+    ; get cursor X position
+    SET X, [vram_cursor]
+    MOD X, LEM_WID
+
+    ; B = x position after write (ignoring wrapping)
     SET B, A
-    SUB B, C
-    ; b = number of lines to scroll
+    ADD B, X
+
+    IFE [Z+0], 0
+        SET PC, .video_irq_writestring_no_newline
+
+    ; round B up to nearest LEM_WID
+    ADD B, LEM_WID-1
+    DIV B, LEM_WID
+    MUL B, LEM_WID
+.video_irq_writestring_no_newline:
+
+    ; B = number of lines to scroll
     DIV B, LEM_WID
     SET PUSH, B
         JSR scrollscreen
     ADD SP, 1
 
-.video_irq_writestring_copy:
-    SET A, vram_edit
-    SET B, [vram_cursor]
-    ADD A, B
-    ADD B, LEM_WID
+.video_irq_writestring_update_cursor:
+    SET C, [vram_cursor]
+    SET B, C
+
+    ; Set B to new cursor position
+    ; A is still strlen
+    ADD B, A
+
+    IFE [Z+0], 0
+        SET PC, .video_irq_writestring_update_cursor_no_newline
+    ; round B up to nearest LEM_WID
+    ADD B, LEM_WID-1
+    DIV B, LEM_WID
+    MUL B, LEM_WID
+.video_irq_writestring_update_cursor_no_newline:
+
+    ; sanitize cursor position
     IFG B, vram_end-vram_edit-1
         SET B, vram_end-vram_edit-1
     SET [vram_cursor], B
-    SET B, [Z+0]
+
+.video_irq_writestring_copy:
+    ; set A to VRAM write pointer
+    SET A, vram_edit
+    ; C is still vram_cursor (before update)
+    ADD A, C
+
+    SET B, [Z+1]
 .video_irq_writestring_top:
     IFE [B], 0
         SET PC, .video_irq_updatescreen
@@ -275,8 +312,8 @@ irq_handler:
     SET PC, POP
 
 .video_irq_getsize:
-    SET [Z+1], LEM_WID
-    SET [Z+0], LEM_HGT
+    SET [Z+0], LEM_WID
+    SET [Z+1], LEM_HGT
     SET PC, POP
 
 .drive_irq:
