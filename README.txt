@@ -130,11 +130,11 @@ Get BBOS Info           0x0000  *bbosinfo               None            1.0
 -- Video        
 Screen Attached         0x1000  OUT Attached            Attached        1.0
 Set Cursor Pos          0x1001  X, Y                    None            1.0
-Get Cursor Pos          0x1002  OUT X, OUT Y            X, Y            1.0
+Get Cursor Pos          0x1002  OUT Y, OUT X            X, Y            1.0
 Write Char              0x1003  Char, MoveCursor        None            1.0
 Write String            0x1004  StringZ (with format)   None            1.0
 Scroll Screen           0x1005  Num lines to scroll     None            1.0
-Get Screen Size         0x1006  OUT Width, OUT Height   Width, Height   1.1
+Get Screen Size         0x1006  OUT Height, OUT Width   Width, Height   1.1
 
 -- Drive
 Get Drive Count         0x2000  OUT Drive Count         Drive Count     1.0
