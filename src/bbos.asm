@@ -1,6 +1,8 @@
 
 #include "bbos.inc.asm"
 
+.define VERSION 0x0101
+
 .define RUN_AT  0xF000
 
 .define LEM_ID  0x7349f615
@@ -9,12 +11,12 @@
 .define LEM_WID 32
 .define LEM_HGT 12
 
+.define VRAM_SIZE   384 ; LEM_WID * LEM_HGT
+
 .define HID_CLASS           3
 .define KEYBOARD_SUBCLASS   0
 
 .define MAX_DRIVES  8
-
-.define VRAM_SIZE   384
 
 zero:
     SET I, boot_rom
@@ -157,8 +159,8 @@ irq_handler:
     SET PC, POP
 
 .bbos_irq:
-    SET A, [Z]
-    SET [A+BBOS_VERSION], 0x0100
+    SET A, [Z+0]
+    SET [A+BBOS_VERSION], VERSION
     SET [A+BBOS_START_ADDR], bbos_start-VRAM_SIZE
     SET [A+BBOS_END_ADDR], bbos_end
     SET [A+BBOS_INT_HANDLER], irq_handler
@@ -187,9 +189,9 @@ irq_handler:
     SET PC, POP
 
 .video_irq_attached:
-    SET [Z], 1
+    SET [Z+0], 1
     IFE [display_port], 0xFFFF
-        SET [Z], 0
+        SET [Z+0], 0
     SET PC, POP
 
 .video_irq_setcursor:
@@ -202,8 +204,8 @@ irq_handler:
 
 .video_irq_getcursor:
     SET A, [vram_cursor]
-    SET [Z], A
-    MOD [Z], LEM_WID
+    SET [Z+0], A
+    MOD [Z+0], LEM_WID
     SET [Z+1], A
     DIV [Z+1], LEM_WID
     SET PC, POP
@@ -222,7 +224,7 @@ irq_handler:
     SET PC, .video_irq_updatescreen
 
 .video_irq_writestring:
-    SET A, [Z]
+    SET A, [Z+0]
     JSR strlen
 
     ; calculate if string will fit in buffer
@@ -248,7 +250,7 @@ irq_handler:
     IFG B, vram_end-vram_edit-1
         SET B, vram_end-vram_edit-1
     SET [vram_cursor], B
-    SET B, [Z]
+    SET B, [Z+0]
 .video_irq_writestring_top:
     IFE [B], 0
         SET PC, .video_irq_updatescreen
@@ -261,7 +263,7 @@ irq_handler:
     SET PC, .video_irq_writestring_top
 
 .video_irq_scrollscreen:
-    SET PUSH, [Z]
+    SET PUSH, [Z+0]
         JSR scrollscreen
     ADD SP, 1
 ;    SET PC, .video_irq_updatescreen
@@ -274,13 +276,13 @@ irq_handler:
 
 .video_irq_getsize:
     SET [Z+1], LEM_WID
-    SET [Z], LEM_HGT
+    SET [Z+0], LEM_HGT
     SET PC, POP
 
 .drive_irq:
     IFE J, 0x2000
         SET PC, .drive_irq_getcount
-    SET B, [Z]
+    SET B, [Z+0]
     IFL B, [drive_count]
         SET PC, .drive_irq_valid
     SET PC, POP
@@ -297,7 +299,7 @@ irq_handler:
     SET PC, POP
 
 .drive_irq_getcount:
-    SET [Z], [drive_count]
+    SET [Z+0], [drive_count]
     SET PC, POP
 
 .drive_irq_getstatus:
@@ -306,7 +308,7 @@ irq_handler:
     SHL B, 8
     AND C, 0xFF
     BOR B, C
-    SET [Z], B
+    SET [Z+0], B
     SET PC, POP
 
 .drive_irq_getparam:
@@ -350,9 +352,9 @@ irq_handler:
     SET B, POP
     IFE C, 1
         SET PC, .drive_irq_wait
-    SET [Z], 0
+    SET [Z+0], 0
     IFE C, 0
-        SET [Z], 1
+        SET [Z+0], 1
     SET PC, POP
 
 .keyboard_irq:
@@ -366,23 +368,23 @@ irq_handler:
     SET PC, POP
 
 .keyboard_irq_attached:
-    SET [Z], 0
+    SET [Z+0], 0
     IFN [keyboard_port], 0xFFFF
-        SET [Z], 1
+        SET [Z+0], 1
     SET PC, POP
 
 .keyboard_irq_readchar:
     SET A, 1
     HWI [keyboard_port]
     IFE C, 0
-        IFE [Z], 1
+        IFE [Z+0], 1
             SET PC, .keyboard_irq_readchar
-    SET [Z], C
+    SET [Z+0], C
     SET PC, POP
 
 .rtc_irq:
     ; no rtc at this time
-    SET [Z], 0
+    SET [Z+0], 0
     SET PC, POP
 
 ; A: Class

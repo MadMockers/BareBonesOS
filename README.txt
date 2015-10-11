@@ -123,33 +123,33 @@ In short:
 
 FUNCTION TABLE
 ==============
-Name                    A       Args                    Returns
-------------------------------------------------------------------------
-Get BBOS Info           0x0000  *bbosinfo               None
+Name                    A       Args                    Returns         Version
+-------------------------------------------------------------------------------
+Get BBOS Info           0x0000  *bbosinfo               None            1.0
 
 -- Video        
-Screen Attached         0x1000  OUT Attached            Attached
-Set Cursor Pos          0x1001  X, Y                    None
-Get Cursor Pos          0x1002  OUT X, OUT Y            X, Y
-Write Char              0x1003  Char, MoveCursor        None
-Write String            0x1004  StringZ (with format)   None
-Scroll Screen           0x1005  Num lines to scroll     None
-Get Screen Size         0x1006  OUT X, OUT Y            Width, Height
+Screen Attached         0x1000  OUT Attached            Attached        1.0
+Set Cursor Pos          0x1001  X, Y                    None            1.0
+Get Cursor Pos          0x1002  OUT X, OUT Y            X, Y            1.0
+Write Char              0x1003  Char, MoveCursor        None            1.0
+Write String            0x1004  StringZ (with format)   None            1.0
+Scroll Screen           0x1005  Num lines to scroll     None            1.0
+Get Screen Size         0x1006  OUT Width, OUT Height   Width, Height   1.1
 
 -- Drive
-Get Drive Count         0x2000  OUT Drive Count         Drive Count
-Check Drive Status      0x2001  DriveNum                StatusCode
-Get Drive Parameters    0x2003  *DriveParams, DriveNum  None
-Read Drive Sector       0x2003  Sector, Ptr, DriveNum   Success
-Write Drive Sector      0x2004  Sector, Ptr, DriveNum   Success
+Get Drive Count         0x2000  OUT Drive Count         Drive Count     1.0
+Check Drive Status      0x2001  DriveNum                StatusCode      1.0
+Get Drive Parameters    0x2003  *DriveParams, DriveNum  None            1.0
+Read Drive Sector       0x2003  Sector, Ptr, DriveNum   Success         1.0
+Write Drive Sector      0x2004  Sector, Ptr, DriveNum   Success         1.0
 
 -- Keyboard
-Keyboard Attached       0x3000  OUT Attached            Attached
-Read Character          0x3001  Blocking                Char
+Keyboard Attached       0x3000  OUT Attached            Attached        1.0
+Read Character          0x3001  Blocking                Char            1.0
 
 RTC Specification is undefined as there is currently no RTC hardware
 -- RTC
-RTC Attached            0x4000  OUT Attached            Attached (Always false currently)
+RTC Attached            0x4000  OUT Attached            Attached        1.0
 Read RTC Time           0x4001
 Read RTC Date           0x4002
 Set RTC Time            0x4003
@@ -236,6 +236,14 @@ Returns: None
 Since: v1.0
 
 Scrolls the screen, providing more space at the bottom of the screen.
+
+'Get Screen Size'
+---------------
+Arguments: None (2 placeholder)
+Returns: Width, Height
+Since: v1.1
+
+Gets size of the screen (measured in characters).
 
 'Get Drive Count'
 -----------------
