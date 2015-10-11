@@ -207,12 +207,12 @@ irq_handler:
 .video_irq_writechar:
     SET A, vram_edit
     ADD A, [vram_cursor]
-    SET B, [Z+0]
+    SET B, [Z+1]
     AND B, 0xFF00
     IFE B, 0
-        BOR [Z+0], 0xF000
-    SET [A], [Z+0]
-    IFE [Z+1], 1
+        BOR [Z+1], 0xF000
+    SET [A], [Z+1]
+    IFE [Z+0], 1
         IFL [vram_cursor], vram_edit-vram_end-1
             ADD [vram_cursor], 1
     SET PC, .video_irq_updatescreen
