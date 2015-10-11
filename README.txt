@@ -82,13 +82,16 @@ Custom Interrupt Handler Example
 .define BBOS_END_ADDR       2
 .define BBOS_INT_HANDLER    3
 .define BBOS_API_HANDLER    4
-bbos_struct:
-    .reserve 4
+bbos_int_addr:
+.dat    0
 start:
     SET A, 0x0000           ; Get BBOS Info
-    SET PUSH, bbos_struct   ; Push reserved bbos_struct addr as argument
+    SUB SP, 1               ; placeholder for return value
     INT 0x4743              ; invoke BBOS
-    ADD SP, 1               ; cleanup stack
+    SET A, POP              ; pop address of info struct into A
+    
+    ; update our value 'bbos_int_addr' with the value from the struct
+    SET [bbos_int_addr], [A+BBOS_INT_HANDLER]
 
     IAS my_interrupt_handler ; Set my_interrupt_handler as the system interrupt handler
 
@@ -99,7 +102,7 @@ my_interrupt_handler:
     SET B, A                ; Use B as scratch pad for masking A
     AND B, 0xFF00           ; mask first octet of B
     IFE B, 0x4700           ; check if it is reserved by BBOS
-        SET PC, [bbos_struct+BBOS_INT_HANDLER]  ; invoke BBOS interrupt handler
+        SET PC, [bbos_int_addr]  ; invoke BBOS interrupt handler
     SET B, POP              ; restore B
 
     <my interrupt handler code> ; custom interrupt code
