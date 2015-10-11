@@ -232,7 +232,20 @@ irq_handler:
     SET C, vram_end-vram_edit
     SUB C, [vram_cursor]
 
-    IFL A, C
+    SET B, A
+    IFE [Z+0], 0
+        SET PC, .video_irq_writestring_no_newline
+    ; if 0 length, force round up
+    IFE A, 0
+        ADD B, 1
+
+    ; round B up to nearest LEM_WID
+    ADD B, LEM_WID-1
+    DIV B, LEM_WID
+    MUL B, LEM_WID
+.video_irq_writestring_no_newline:
+
+    IFL B, C
         SET PC, .video_irq_writestring_update_cursor
 
     ; get cursor X position
@@ -240,17 +253,7 @@ irq_handler:
     MOD X, LEM_WID
 
     ; B = x position after write (ignoring wrapping)
-    SET B, A
     ADD B, X
-
-    IFE [Z+0], 0
-        SET PC, .video_irq_writestring_no_newline
-
-    ; round B up to nearest LEM_WID
-    ADD B, LEM_WID-1
-    DIV B, LEM_WID
-    MUL B, LEM_WID
-.video_irq_writestring_no_newline:
 
     ; B = number of lines to scroll
     DIV B, LEM_WID

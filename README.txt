@@ -144,7 +144,7 @@ Get Screen Size         0x1006  OUT Width, OUT Height   Height, Width   1.0
 -- Drive
 Get Drive Count         0x2000  OUT Drive Count         Drive Count     1.0
 Check Drive Status      0x2001  DriveNum                StatusCode      1.0
-Get Drive Parameters    0x2003  *DriveParams, DriveNum  None            1.0
+Get Drive Parameters    0x2002  *DriveParams, DriveNum  None            1.0
 Read Drive Sector       0x2003  Sector, Ptr, DriveNum   Success         1.0
 Write Drive Sector      0x2004  Sector, Ptr, DriveNum   Success         1.0
 
