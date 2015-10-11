@@ -127,7 +127,7 @@ FUNCTION TABLE
 ==============
 Name                    A       Args                    Returns         Version
 -------------------------------------------------------------------------------
-Get BBOS Info           0x0000  *bbosinfo               None            1.0
+Get BBOS Info           0x0000  OUT *bbosinfo           *bbosinfo       1.0
 
 -- Video        
 Screen Attached         0x1000  OUT Attached            Attached        1.0
@@ -163,8 +163,8 @@ FUNCTION DOCUMENTATION
 ======================
 'Get BBOS Info'
 ---------------
-Arguments: struct bbosinfo*
-Returns: None
+Arguments: None (1 placeholder)
+Returns: struct bbosinfo*
 Since: v1.0
 
 Provides the information available in the 'bbosinfo' struct, namely the
@@ -173,8 +173,8 @@ interrupt handler, and the address of the BBOS API handler
 (description in "CO-EXISTING WITH BBOS").
 The BBOS version has the major version in the high octet, and the minor
 version in the low octet.
-This function takes a single argument which is the address to a
-'bbosinfo' struct, which is filled in by this function.
+This function returns a pointer to a bbosinfo struct. This struct must
+not be modified.
 
 'Screen Attached'
 -----------------

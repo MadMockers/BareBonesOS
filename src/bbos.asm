@@ -159,12 +159,12 @@ irq_handler:
     SET PC, POP
 
 .bbos_irq:
-    SET A, [Z+0]
-    SET [A+BBOS_VERSION], VERSION
-    SET [A+BBOS_START_ADDR], bbos_start-VRAM_SIZE
-    SET [A+BBOS_END_ADDR], bbos_end
-    SET [A+BBOS_INT_HANDLER], irq_handler
-    SET [A+BBOS_API_HANDLER], irq_handler_jsr
+    SET [bbos_info+BBOS_VERSION], VERSION
+    SET [bbos_info+BBOS_START_ADDR], bbos_start-VRAM_SIZE
+    SET [bbos_info+BBOS_END_ADDR], bbos_end
+    SET [bbos_info+BBOS_INT_HANDLER], irq_handler
+    SET [bbos_info+BBOS_API_HANDLER], irq_handler_jsr
+    SET [Z+0], bbos_info
     SET PC, POP
 
 .video_irq:
@@ -653,6 +653,9 @@ boot_str2:
 .dat        0x2072
 .dat        0x2073
 .dat        0
+
+bbos_info:
+.reserve    BBOSINFO_SIZE
 
 vram_cursor:
 .dat        0
