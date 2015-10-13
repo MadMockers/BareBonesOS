@@ -1,11 +1,4 @@
-
 #include "bbos.inc.asm"
-
-.define DEBUG
-
-.define BL_SIZE loader_end-loader_entry
-
-.define DEBUG_BASE_ADDR 0xE000
 
 .define sector_start 509
 .define sector_end 510
@@ -13,23 +6,20 @@
 
 copy_start:
 start:
-    PUSH A  ; A has drive to load off
+    SET PUSH, A  ; A has drive to load off
         ; get position of BBOS
         SET A, 0x0000
         SUB SP, BBOSINFO_SIZE
         SET B, SP
-        PUSH B
+        SET PUSH, B
             INT BBOS_IRQ_MAGIC
         ADD SP, 1
         SET J, [B+BBOS_START_ADDR]
-        SUB J, BL_SIZE
-.ifdef DEBUG
-        SET J, DEBUG_BASE_ADDR
-.endif
+        SUB J, loader_end-loader_entry
 
         SET I, physical_start
         SET Z, J
-        SET A, BL_SIZE
+        SET A, loader_end-loader_entry
         ADD SP, BBOSINFO_SIZE
 .copy_top:
         SUB A, 1
@@ -41,14 +31,11 @@ copy_end:
 
 physical_start:
 
-.ifdef DEBUG
-.org DEBUG_BASE_ADDR
-.endif
 loader_entry:
     SET J, PC
-    POP B
+    SET B, POP
 
-    PUSH J
+    SET PUSH, J
     ADD [SP], title_str-loader_entry-1
         SET I, J
         ADD I, write_screen-loader_entry-1
@@ -63,11 +50,11 @@ load_top:
     IFE Z, 0
         ADD PC, done-src1
 src1:
-    PUSH C
-    PUSH X
-    PUSH B
+    SET PUSH, C
+    SET PUSH, X
+    SET PUSH, B
         INT BBOS_IRQ_MAGIC
-    POP Y
+    SET Y, POP
     ADD SP, 2
     IFE Y, 0
         ADD PC, load_fail-src2
@@ -79,7 +66,7 @@ src2:
 src3:
 
 load_fail:
-    PUSH J
+    SET PUSH, J
     ADD [SP], drive_fail-loader_entry-1
         SET I, J
         ADD I, write_screen-loader_entry-1
@@ -97,24 +84,24 @@ die:
     SET PC, die
 
 write_screen:
-    PUSH A
+    SET PUSH, A
         ; check display is attached
         SET A, 0x1000
         SUB SP, 1
             INT BBOS_IRQ_MAGIC
-        POP A
+        SET A, POP
         IFE A, 0
             SET PC, .done
 
         ; write string
         SET A, 0x1004
-        PUSH [SP+2]
-        PUSH 1
+        SET PUSH, [SP+2]
+        SET PUSH, 1
             INT BBOS_IRQ_MAGIC
         ADD SP, 2
 .done:
-    POP A
-    RET
+    SET A, POP
+    SET PC, POP
     
 drive_fail:
     .asciiz "Error while reading"
@@ -122,4 +109,3 @@ title_str:
     .asciiz "BootLoader v0.1"
 loader_end:
 end:
-
