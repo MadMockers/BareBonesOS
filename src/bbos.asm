@@ -13,10 +13,15 @@
 
 .define VRAM_SIZE   384 ; LEM_WID * LEM_HGT
 
+.define MAX_DRIVES  8
+
+.define COMMS_IRQ   0x47E0
+
 .define HID_CLASS           3
 .define KEYBOARD_SUBCLASS   0
 
-.define MAX_DRIVES  8
+.define COMMS_CLASS         0xE
+.define PARALLEL_SUBCLASS   0
 
 zero:
     SET I, boot_rom
@@ -42,44 +47,10 @@ entry:
 
     IAS irq_handler
 
-    ; find display
-    SET PUSH, LEM_ID&0xFFFF
-    SET PUSH, LEM_ID>>16
-    SET PUSH, LEM_VER
-    SET PUSH, LEM_MFR&0xFFFF
-    SET PUSH, LEM_MFR>>16
-        JSR find_hardware
-    SET [display_port], POP
-    ADD SP, 4
-
-    ; Skip display init if no display
-    IFE [display_port], 0xFFFF
-        SET PC, no_display
-
-    SET A, 0
-    SET B, vram
-    HWI [display_port]
-    
-    SET A, 0x1004
-    SET PUSH, boot_str1
-    SET PUSH, 1
-        INT BBOS_IRQ_MAGIC
-    ADD SP, 2
-
-    SET A, 0x1004
-    SET PUSH, boot_str2
-    SET PUSH, 1
-        INT BBOS_IRQ_MAGIC
-    ADD SP, 2
-
-no_display:
-
+    JSR find_display
     JSR find_drives
-
-    SET A, HID_CLASS
-    SET B, KEYBOARD_SUBCLASS
-    JSR find_hw_class
-    SET [keyboard_port], A
+    JSR find_keyboard
+    JSR find_hic
 
     IFE [drive_count], 0
         SET PC, .no_drives
@@ -123,6 +94,9 @@ irq_handler_jsr:
     SET PUSH, A
     SET A, 0x4744
 irq_handler:
+    IFE A, COMMS_IRQ
+        SET PC, comms_notify
+
     IFN A, 0x4743
         IFN A, 0x4744
             RFI
@@ -141,14 +115,15 @@ irq_handler:
             JSR .bbos_irq
         SET X, J
         AND X, 0xF000
+        AND J, 0x0FFF
         IFE X, 0x1000
-            JSR .video_irq
+            JSR video_irq
         IFE X, 0x2000
-            JSR .drive_irq
+            JSR drive_irq
         IFE X, 0x3000
-            JSR .keyboard_irq
+            JSR keyboard_irq
         IFE X, 0x4000
-            JSR .rtc_irq
+            JSR rtc_irq
 
     SET J, POP
     SET X, POP
@@ -170,261 +145,11 @@ irq_handler:
     SET [Z+0], bbos_info
     SET PC, POP
 
-.video_irq:
-    IFE J, 0x1000
-        SET PC, .video_irq_attached
-    IFE [display_port], 0xFFFF
-        SET PC, POP
-
-    IFE J, 0x1001
-        SET PC, .video_irq_setcursor
-    IFE J, 0x1002
-        SET PC, .video_irq_getcursor
-    IFE J, 0x1003
-        SET PC, .video_irq_writechar
-    IFE J, 0x1004
-        SET PC, .video_irq_writestring
-    IFE J, 0x1005
-        SET PC, .video_irq_scrollscreen
-    IFE J, 0x1006
-        SET PC, .video_irq_getsize
-
-    SET PC, POP
-
-.video_irq_attached:
-    SET [Z+0], 1
-    IFE [display_port], 0xFFFF
-        SET [Z+0], 0
-    SET PC, POP
-
-.video_irq_setcursor:
-    SET A, [Z+0]
-    MUL A, LEM_WID
-    ADD A, [Z+1]
-    IFL A, vram_end-vram_edit
-        SET [vram_cursor], A
-    SET PC, POP
-
-.video_irq_getcursor:
-    SET A, [vram_cursor]
-    SET [Z+1], A
-    MOD [Z+1], LEM_WID
-    SET [Z+0], A
-    DIV [Z+0], LEM_WID
-    SET PC, POP
-
-.video_irq_writechar:
-    SET A, vram_edit
-    ADD A, [vram_cursor]
-    IFC [Z+1], 0xFF00
-        BOR [Z+1], 0xF000
-    SET [A], [Z+1]
-    IFE [Z+0], 1
-        IFL [vram_cursor], vram_edit-vram_end-1
-            ADD [vram_cursor], 1
-    SET PC, .video_irq_updatescreen
-
-.video_irq_writestring:
-    SET A, [Z+1]
-    JSR strlen
-
-    ; calculate if string will fit in buffer
-    SET C, vram_end-vram_edit
-    SUB C, [vram_cursor]
-
-    SET B, A
-    IFE [Z+0], 0
-        SET PC, .video_irq_writestring_no_newline
-    ; if 0 length, force round up
-    IFE A, 0
-        ADD B, 1
-
-    ; round B up to nearest LEM_WID
-    ADD B, LEM_WID-1
-    DIV B, LEM_WID
-    MUL B, LEM_WID
-.video_irq_writestring_no_newline:
-
-    IFL B, C
-        SET PC, .video_irq_writestring_update_cursor
-
-    ; get cursor X position
-    SET X, [vram_cursor]
-    MOD X, LEM_WID
-
-    ; B = x position after write (ignoring wrapping)
-    ADD B, X
-
-    ; B = number of lines to scroll
-    DIV B, LEM_WID
-    SET PUSH, B
-        JSR scrollscreen
-    ADD SP, 1
-
-.video_irq_writestring_update_cursor:
-    SET C, [vram_cursor]
-    SET B, C
-
-    ; Set B to new cursor position
-    ; A is still strlen
-    ADD B, A
-
-    IFE [Z+0], 0
-        SET PC, .video_irq_writestring_update_cursor_no_newline
-    ; round B up to nearest LEM_WID
-    ADD B, LEM_WID-1
-    DIV B, LEM_WID
-    MUL B, LEM_WID
-.video_irq_writestring_update_cursor_no_newline:
-
-    ; sanitize cursor position
-    IFG B, vram_end-vram_edit-1
-        SET B, vram_end-vram_edit-1
-    SET [vram_cursor], B
-
-.video_irq_writestring_copy:
-    ; set A to VRAM write pointer
-    SET A, vram_edit
-    ; C is still vram_cursor (before update)
-    ADD A, C
-
-    SET B, [Z+1]
-.video_irq_writestring_top:
-    IFE [B], 0
-        SET PC, .video_irq_updatescreen
-    SET C, [B]
-    IFC C, 0xFF00
-        BOR C, 0xF000
-    SET [A], C
-    ADD B, 1
-    ADD A, 1
-    SET PC, .video_irq_writestring_top
-
-.video_irq_scrollscreen:
-    SET PUSH, [Z+0]
-        JSR scrollscreen
-    ADD SP, 1
-;    SET PC, .video_irq_updatescreen
-
-.video_irq_updatescreen:
-    SET A, 0
-    SET B, vram
-    HWI [display_port]
-    SET PC, POP
-
-.video_irq_getsize:
-    SET [Z+0], LEM_WID
-    SET [Z+1], LEM_HGT
-    SET PC, POP
-
-.drive_irq:
-    IFE J, 0x2000
-        SET PC, .drive_irq_getcount
-    SET B, [Z+0]
-    IFL B, [drive_count]
-        SET PC, .drive_irq_valid
-    SET PC, POP
-
-.drive_irq_valid:
-    IFE J, 0x2001
-        SET PC, .drive_irq_getstatus
-    IFE J, 0x2002
-        SET PC, .drive_irq_getparam
-    IFE J, 0x2003
-        SET PC, .drive_irq_read
-    IFE J, 0x2004
-        SET PC, .drive_irq_write
-    SET PC, POP
-
-.drive_irq_getcount:
-    SET [Z+0], [drive_count]
-    SET PC, POP
-
-.drive_irq_getstatus:
-    SET A, 0
-    HWI B
-    SHL B, 8
-    AND C, 0xFF
-    BOR B, C
-    SET [Z+0], B
-    SET PC, POP
-
-.drive_irq_getparam:
-    SET A, [Z+1]
-    SET [A+DRIVE_SECT_SIZE], 512
-    SET [A+DRIVE_SECT_COUNT], 1440
-    SET PC, POP
-
-.drive_irq_read:
-    SET PUSH, X
-    SET PUSH, Y
-        ADD B, drives
-        SET PUSH, B
-            SET X, [Z+2]
-            SET Y, [Z+1]
-            SET A, 2
-            HWI [B]
-        SET B, POP
-    SET Y, POP
-    SET X, POP
-    SET PC, .drive_irq_wait
-
-.drive_irq_write:
-    SET PUSH, X
-    SET PUSH, Y
-        ADD B, drives
-        SET PUSH, B
-            SET X, [Z+2]
-            SET Y, [Z+1]
-            SET A, 3
-            HWI [B]
-        SET B, POP
-    SET Y, POP
-    SET X, POP
-    ; SET PC, .drive_irq_wait ; fall through right below
-
-.drive_irq_wait:
-    SET A, 0
-    SET PUSH, B
-        HWI [B]
-    SET A, B
-    SET B, POP
-    IFE A, DRIVE_STATE_BUSY
-        SET PC, .drive_irq_wait
-    SET [Z+0], 0
-    IFE C, 0
-        SET [Z+0], 1
-    SET PC, POP
-
-.keyboard_irq:
-    IFE J, 0x3000
-        SET PC, .keyboard_irq_attached
-    IFE [keyboard_port], 0xFFFF
-        SET PC, POP
-
-    IFE J, 0x3001
-        SET PC, .keyboard_irq_readchar
-    SET PC, POP
-
-.keyboard_irq_attached:
-    SET [Z+0], 0
-    IFN [keyboard_port], 0xFFFF
-        SET [Z+0], 1
-    SET PC, POP
-
-.keyboard_irq_readchar:
-    SET A, 1
-    HWI [keyboard_port]
-    IFE C, 0
-        IFE [Z+0], 1
-            SET PC, .keyboard_irq_readchar
-    SET [Z+0], C
-    SET PC, POP
-
-.rtc_irq:
-    ; no rtc at this time
-    SET [Z+0], 0
-    SET PC, POP
+#include "video.asm"
+#include "drives.asm"
+#include "keyboard.asm"
+#include "rtc.asm"
+#include "comms.asm"
 
 ; A: Class
 ; B: Subclass
@@ -456,6 +181,82 @@ find_hw_class:
     SET Z, POP
     SET Y, POP
     SET X, POP
+    SET PC, POP
+
+; A: API
+; Return
+; A: Port (0xFFFF on fail)
+;find_hw_api:
+;    SET PUSH, X
+;    SET PUSH, Y
+;    SET PUSH, Z
+;
+;        SET I, A
+;
+;        HWN Z
+;.loop_top:
+;        SUB Z, 1
+;        IFE Z, 0xFFFF
+;            SET PC, .loop_break
+;        HWQ Z
+;
+;        SHR B, 4
+;        AND B, 0xF
+;        IFE B, I
+;            SET PC, .loop_break
+;        SET PC, .loop_top
+;.loop_break:
+;        SET A, Z
+;
+;    SET Z, POP
+;    SET Y, POP
+;    SET X, POP
+;    SET PC, POP
+
+find_hic:
+    SET A, COMMS_CLASS
+    SET B, PARALLEL_SUBCLASS
+    JSR find_hw_class
+    SET [comms_port], A
+    SET PC, POP
+
+find_keyboard:
+    SET A, HID_CLASS
+    SET B, KEYBOARD_SUBCLASS
+    JSR find_hw_class
+    SET [keyboard_port], A
+    SET PC, POP
+
+find_display:
+    ; find display
+    SET PUSH, LEM_ID&0xFFFF
+    SET PUSH, LEM_ID>>16
+    SET PUSH, LEM_VER
+    SET PUSH, LEM_MFR&0xFFFF
+    SET PUSH, LEM_MFR>>16
+        JSR find_hardware
+    SET [display_port], POP
+    ADD SP, 4
+
+    ; Skip display init if no display
+    IFE [display_port], 0xFFFF
+        SET PC, POP
+
+    SET A, 0
+    SET B, vram
+    HWI [display_port]
+    
+    SET A, 0x1004
+    SET PUSH, boot_str1
+    SET PUSH, 1
+        INT BBOS_IRQ_MAGIC
+    ADD SP, 2
+
+    SET A, 0x1004
+    SET PUSH, boot_str2
+    SET PUSH, 1
+        INT BBOS_IRQ_MAGIC
+    ADD SP, 2
     SET PC, POP
 
 find_drives:
@@ -708,6 +509,9 @@ drive_count:
 .dat        0
 
 keyboard_port:
+.dat        0
+
+comms_port:
 .dat        0
 
 str_no_boot:

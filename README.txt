@@ -167,6 +167,16 @@ Set RTC Date            0x4004
 Set RTC Alarm           0x4005
 Reset RTC Alarm         0x4006
 
+-- Comms
+Comms Attached          0x5000  OUT Attached            Attached        1.0
+Query                   0x5001  *CommsInfo              None            1.0
+Query Port              0x5002  Port, *Name             ID, Connected   1.0
+Configure               0x5003  DataWidth               None            1.0
+Receive                 0x5004  OUT Lo, OUT Hi, OUT Err Err, Hi, Lo     1.0
+Transmit                0x5005  Hi, Lo                  Error           1.0
+Set Port                0x5006  Port                    Success         1.0
+Set Notify              0x5007  FunctionPtr             None            1.0
+
 FUNCTION DOCUMENTATION
 ======================
 'Get BBOS Info'
@@ -355,3 +365,86 @@ Returns 1 if a supported real time clock is attached.
 
 Other RTC functions are currently undefined as there is currently no
 RTC hardware specification.
+
+'Comms Attached'
+----------------
+Arguments: None (1 placeholder)
+Returns: Attached
+Since: v1.0
+
+Returns 1 if a supported comms device is attached
+
+'Query'
+-------
+Arguments: struct CommsInfo*
+Returns: None
+Since: v1.0
+
+Fills in the CommsInfo struct.
+
+'QueryPort'
+-----------
+Arguments: Port, char Name[32]
+Returns: ID, Connected
+Since: v1.0
+
+Fills in the Name buffer with the name of the port specified.
+Returns the ID of the port, and if the port is connected.
+
+'Configure'
+-----------
+Arguments: Width
+Returns: None
+Since: v1.0
+
+Configure the port to either 16 bit words or 32 bit words per
+transmit / receive.
+If Width = 0, configure the port to 16 bits
+If Width = 1, configure the port to 32 bits
+
+'Receive'
+---------
+Arguments: None (3 placeholder)
+Returns: Error, High, Low
+Since: v1.0
+
+Reads 16 or 32 bits. If width is configured to 16 bits, High
+is set to 0.
+Error codes:
+    0:  No error
+    1:  Buffer overflow
+    2:  Generic Error
+    3:  No data available
+
+'Transmit'
+----------
+Arguments: High, Low
+Returns: Error
+Since: v1.0
+
+Transmits 16 or 32 bits. If width is configured to 16 bits,
+High is ignored.
+Error codes:
+    0:  No error
+    1:  Buffer overflow
+
+'Set Port'
+----------
+Arguments: Port
+Returns: Success
+Since: v1.0
+
+Sets the active Port.
+
+'Set Notify'
+------------
+Arguments: Function
+Returns: None
+Since: v1.0
+
+If Function is not NULL, receive notifications when data becomes
+available. The address Function is called with register A set to
+the port that has data available. The function must preserve *ALL*
+registers (i.e, after returning with SET PC, POP, all register must
+be the same as when entering the function).
+If Function is NULL, disable notifications.

@@ -28,3 +28,16 @@
 .define DRIVE_ERROR_EJECT       4
 .define DRIVE_ERROR_BAD_SECTOR  5
 .define DRIVE_ERROR_BROKEN      0xFF
+
+;struct CommsInfo
+.define COMMS_BUSY          0
+.define COMMS_RECV_AVAIL    1
+.define COMMS_WRITE_AVAIL   2
+.define COMMS_ACTIVE_PORT   3
+.define COMMS_DATA_ON_PORT  4
+.define COMMS_SIZE          5
+
+.define COMMS_ERROR_NONE        0
+.define COMMS_ERROR_OVERFLOW    1
+.define COMMS_ERROR_GENERIC     2
+.define COMMS_ERROR_NO_DATA     3
