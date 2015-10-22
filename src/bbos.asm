@@ -479,18 +479,17 @@ boot_str1:
 .dat        0x4029
 .dat        0
 boot_str2:
-.dat        0x2042
-.dat        0x2079
+.dat        0x204d
+.dat        0x204d
 .dat        0x2020
-.dat        0x204D
-.dat        0x2061
-.dat        0x2064
-.dat        0x204D
-.dat        0x206F
-.dat        0x2063
-.dat        0x206B
-.dat        0x2065
-.dat        0x2072
+.dat        0x2053
+.dat        0x206f
+.dat        0x206c
+.dat        0x2075
+.dat        0x2074
+.dat        0x2069
+.dat        0x206f
+.dat        0x206e
 .dat        0x2073
 .dat        0
 
