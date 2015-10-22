@@ -101,10 +101,19 @@ video_tests:
         JSR write_string
     ADD SP, 2
 
-    SET A, 0x1005
-    SET PUSH, 1
+    ; save cursor pos
+    SUB SP, 2
+        SET A, 0x1002
         INT BBOS_IRQ_MAGIC
-    ADD SP, 1
+
+        SET A, 0x1005
+        SET PUSH, 1
+            INT BBOS_IRQ_MAGIC
+        ADD SP, 1
+
+        SET A, 0x1001
+        INT BBOS_IRQ_MAGIC
+    ADD SP, 2
 
     SET PUSH, str_scroll_screen_confirm
         JSR user_confirm
