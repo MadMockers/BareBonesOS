@@ -10,17 +10,17 @@ keyboard_irq:
     SET PC, POP
 
 .attached:
-    SET [Z], 0
+    SET [Z+0], 0
     IFN [keyboard_port], 0xFFFF
-        SET [Z], 1
+        SET [Z+0], 1
     SET PC, POP
 
 .readchar:
     SET A, 1
     HWI [keyboard_port]
     IFE C, 0
-        IFE [Z], 1
+        IFE [Z+0], 1
             SET PC, .readchar
-    SET [Z], C
+    SET [Z+0], C
     SET PC, POP
 

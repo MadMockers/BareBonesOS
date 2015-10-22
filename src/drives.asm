@@ -2,7 +2,7 @@
 drive_irq:
     IFE J, 0x0000
         SET PC, .getcount
-    SET B, [Z]
+    SET B, [Z+0]
     IFL B, [drive_count]
         SET PC, .valid
     SET PC, POP
@@ -19,15 +19,16 @@ drive_irq:
     SET PC, POP
 
 .getcount:
-    SET [Z], [drive_count]
+    SET [Z+0], [drive_count]
     SET PC, POP
 
 .getstatus:
     SET A, 0
     HWI B
     SHL B, 8
+    AND C, 0xFF
     BOR B, C
-    SET [Z], B
+    SET [Z+0], B
     SET PC, POP
 
 .getparam:
@@ -68,11 +69,12 @@ drive_irq:
     SET A, 0
     SET PUSH, B
         HWI [B]
+    SET A, B
     SET B, POP
-    IFE C, 1
+    IFE A, DRIVE_STATE_BUSY
         SET PC, .wait
-    SET [Z], 0
+    SET [Z+0], 0
     IFE C, 0
-        SET [Z], 1
+        SET [Z+0], 1
     SET PC, POP
 
