@@ -1,4 +1,7 @@
 
+; This test is designed to be launched by a bootloader.
+; It is not capable if loading itself from floppy on its own.
+
 #include "bbos.inc.asm"
 
 test_entry:
@@ -268,7 +271,7 @@ test_drive:
 .cmp_top:
     IFE A, 512
         SET PC, .read_write_success
-    IFN A, B
+    IFN [A], [B]
         SET PC, .read_write_fail
     ADD A, 1
     ADD B, 1
