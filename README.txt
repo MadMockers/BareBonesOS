@@ -33,10 +33,9 @@ SET B, POP      ; get result and store in B
 BOR B, 0xF000   ; Binary OR in format
 SET A, 0x1003   ; Write Char
 SET PUSH, B     ; Push character to be written to screen
+SET PUSH, 0     ; Don't move cursor
 INT 0x4743      ; invoke BBOS
 ADD SP, 1       ; clean up stack
-
-Note: Write Char does not move the cursor
 
 STRUCTURES
 ==========
