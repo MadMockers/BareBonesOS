@@ -8,6 +8,7 @@ drive_irq:
     SET PC, POP
 
 .valid:
+    ADD B, drives
     IFE J, 0x0001
         SET PC, .getstatus
     IFE J, 0x0002
@@ -24,7 +25,7 @@ drive_irq:
 
 .getstatus:
     SET A, 0
-    HWI B
+    HWI [B]
     SHL B, 8
     AND C, 0xFF
     BOR B, C
@@ -40,7 +41,6 @@ drive_irq:
 .read:
     SET PUSH, X
     SET PUSH, Y
-        ADD B, drives
         SET PUSH, B
             SET X, [Z+2]
             SET Y, [Z+1]
@@ -54,7 +54,6 @@ drive_irq:
 .write:
     SET PUSH, X
     SET PUSH, Y
-        ADD B, drives
         SET PUSH, B
             SET X, [Z+2]
             SET Y, [Z+1]
