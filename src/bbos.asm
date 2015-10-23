@@ -55,13 +55,14 @@ entry:
     IFE [drive_count], 0
         SET PC, .no_drives
 
+.retry:
     SET B, 0
 .loop_top:
     SET A, 0x2003
     SET PUSH, 0
     SET PUSH, 0
     SET PUSH, B
-        INT 0x4743
+        INT BBOS_IRQ_MAGIC
     SET A, POP
     ADD SP, 2
     IFN A, 1
@@ -74,16 +75,36 @@ entry:
         SET PC, .loop_top
 .loop_break:
     SET PUSH, str_no_boot
-    SET PC, .die
-.no_drives:
-    SET PUSH, str_no_drives
-.die:
     SET A, 0x1004
     SET PUSH, 1
         INT BBOS_IRQ_MAGIC
     ADD SP, 2
-.die_loop:
-    SET PC, .die_loop
+    SET A, 0x3000
+    SET PUSH, 0
+        INT BBOS_IRQ_MAGIC
+    POP A
+    IFE A, 0
+        SET PC, .die
+
+    SET PUSH, str_retry
+    SET A, 0x1004
+    SET PUSH, 1
+        INT BBOS_IRQ_MAGIC
+    ADD SP, 1
+
+    SET A, 0x3001
+    SET PUSH, 1
+        INT BBOS_IRQ_MAGIC
+    ADD SP, 1
+    SET PC, .retry
+.no_drives:
+    SET PUSH, str_no_drives
+    SET A, 0x1004
+    SET PUSH, 1
+        INT BBOS_IRQ_MAGIC
+    ADD SP, 2
+.die:
+    SET PC, .die
 
 jmp_to_bootloader:
     SET A, B    ; Set A to the drive we found the bootloader on
@@ -513,6 +534,8 @@ keyboard_port:
 comms_port:
 .dat        0
 
+str_retry:
+.asciiz "Press any key to retry"
 str_no_boot:
 .asciiz "No bootable media found"
 str_no_drives:
