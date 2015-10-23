@@ -9,18 +9,15 @@ start:
     SET PUSH, A  ; A has drive to load off
         ; get position of BBOS
         SET A, 0x0000
-        SUB SP, BBOSINFO_SIZE
-        SET B, SP
-        SET PUSH, B
+        SET PUSH, 0
             INT BBOS_IRQ_MAGIC
-        ADD SP, 1
+        SET B, POP
         SET J, [B+BBOS_START_ADDR]
         SUB J, loader_end-loader_entry
 
         SET I, physical_start
         SET Z, J
         SET A, loader_end-loader_entry
-        ADD SP, BBOSINFO_SIZE
 .copy_top:
         SUB A, 1
         STI [J], [I]
