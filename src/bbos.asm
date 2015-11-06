@@ -82,7 +82,7 @@ entry:
     SET A, 0x3000
     SET PUSH, 0
         INT BBOS_IRQ_MAGIC
-    POP A
+    SET A, POP
     IFE A, 0
         SET PC, .die
 
