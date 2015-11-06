@@ -328,13 +328,13 @@ write_drive_status:
 ; +1 String
 ; +0 NewLine
 write_string:
-    PUSH A
+    SET PUSH, A
         SET A, 0x1004
         SET PUSH, [SP+3]
         SET PUSH, [SP+3]
             INT BBOS_IRQ_MAGIC
         ADD SP, 2
-    POP A
+    SET A, POP
     SET PC, POP
 
 ; +1 Value
