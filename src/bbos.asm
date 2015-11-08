@@ -1,4 +1,7 @@
 
+; Uses the non-standard 'DMP' opcode, which writes a values to a serial debug device (e.g, emulator stdout)
+; If you wish to implement, DMP is special opcode 0x1F, in the form of 'DMP a' (refer to 1.7 spec)
+
 #include "bbos.inc.asm"
 
 .define VERSION 0x0100
@@ -44,6 +47,8 @@ vram_end:
 bbos_start:
 entry:
     SET SP, 0
+
+    JSR dmp_hw
 
     IAS irq_handler
 
@@ -477,6 +482,26 @@ strlen:
         SET PC, .loop_top
 .loop_break:
     SUB A, POP
+    SET PC, POP
+
+dmp_hw:
+    HWN Z
+    SET I, 0
+.dmp_top:
+    IFE I, Z
+        SET PC, .dmp_break
+    HWQ I
+    DMP I   ; dump HW index
+    DMP B   ; dump ID (high)
+    DMP A   ; dump ID (low)
+    DMP C   ; dump Version
+    DMP Y   ; dump Manufacturer ID (high)
+    DMP X   ; dump Manufacturer ID (low)
+    DMP 0xFFFF ; delimiter
+
+    ADD I, 1
+    SET PC, .dmp_top
+.dmp_break:
     SET PC, POP
 
 boot_str1:
