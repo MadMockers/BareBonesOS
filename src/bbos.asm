@@ -406,6 +406,7 @@ scrollscreen:
 .clear_break:
 
         SET A, 0
+        SET B, vram
         HWI [display_port]
 
     SET I, POP
