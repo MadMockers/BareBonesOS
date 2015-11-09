@@ -1,5 +1,5 @@
 
-#include <libgen.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -7,27 +7,20 @@
 #include <fcntl.h>
 
 #include <sys/types.h>
+#include <sys/mman.h>
 
 #include <arpa/inet.h>
 
+#include "floppy.h"
 #include "bootloader.h"
 
-#define BBOS_MAGIC      0x55AA
 #define MAX_SIZE_WORDS  0xE000
 #define MAX_SIZE_BYTES  (MAX_SIZE_WORDS * 2)
-
-struct info
-{
-    uint16_t    start_sector;
-    uint16_t    sector_count;
-    uint16_t    magic;
-} __attribute__((packed));
 
 int main(int argc, char *argv[])
 {
     int outfd, infd, result;
     off_t size;
-    struct info info;
     char buffer[1024];
 
     if(argc != 3)
@@ -64,53 +57,37 @@ int main(int argc, char *argv[])
                 MAX_SIZE_WORDS, MAX_SIZE_WORDS, MAX_SIZE_BYTES);
         return 1;
     }
-
-    /* write out bootloader */
-    result = write(outfd, bootloader_bin, bootloader_bin_len);
-    if(result != bootloader_bin_len)
+    
+    void *usr_img = mmap(NULL, size, PROT_READ, MAP_PRIVATE, infd, 0);
+    if(usr_img == MAP_FAILED)
     {
-        fprintf(stderr, "Failed to write bootloader: %s\n", strerror(errno));
+        fprintf(stderr, "Failed to map user image: %s\n", strerror(errno));
         return 1;
     }
 
-    /* truncate to 512-sizeof(info) words (1018 bytes), then write info */
-    result = ftruncate(outfd, 512*2-sizeof(info));
-    if(result == -1)
-    {
-        fprintf(stderr, "Error expanding output file: %s\n", strerror(errno));
-        return 1;
-    }
-    lseek(outfd, 0, SEEK_END);
+    size_t outlen;
+    void *floppy = build_floppy(512, bootloader_bin, bootloader_bin_len,
+            usr_img, size, &outlen);
 
-    /* write start sector */
-    info.start_sector = htons(1);
-    info.sector_count = htons(size / (512 * 2) + 1);
-    info.magic = htons(BBOS_MAGIC);
-    result = write(outfd, &info, sizeof(info));
-    if(result != sizeof(info))
+    if(!floppy)
     {
-        fprintf(stderr, "Error writing sector info: %s\n", strerror(errno));
+        fprintf(stderr, "Failed to build floppy from parts\n");
         return 1;
     }
 
-    /* write user image */
-    while(1)
+    size_t written = 0;
+    while(written != outlen)
     {
-        result = read(infd, buffer, sizeof(buffer));
-        if(result == 0)
-            break;
+        int result = write(outfd, (void*)((uintptr_t)floppy + written), outlen - written);
         if(result == -1)
-        {
-            fprintf(stderr, "Error reading from image file: %s\n", strerror(errno));
-            return 1;
-        }
-
-        if(write(outfd, buffer, result) != result)
         {
             fprintf(stderr, "Error writing image to media: %s\n", strerror(errno));
             return 1;
         }
+        written += result;
     }
+
+    free(floppy);
 
     /* truncate to final size */
     result = ftruncate(outfd, 1440 * 512 * 2);
