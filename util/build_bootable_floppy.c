@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
     if(argc != 3)
     {
-        fprintf(stderr, "%s <image> <output file>\n", basename(argv[0]));
+        fprintf(stderr, "%s <image> <output file>\n", argv[0]);
         fprintf(stderr, "Maximum image size is 0x%X words\n", MAX_SIZE_WORDS);
         return 1;
     }

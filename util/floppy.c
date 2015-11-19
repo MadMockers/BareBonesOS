@@ -29,6 +29,7 @@ void *build_floppy(size_t sector_size, void *bootloader, size_t bootloader_len,
     void *floppy = malloc(sector_size + img_len);
     if(!floppy)
         return NULL;
+    memset(floppy, '\0', sector_size + img_len);
 
     memcpy(floppy, bootloader, bootloader_len);
     memcpy((void*)((uintptr_t)floppy + sector_size), usr_img, img_len);
