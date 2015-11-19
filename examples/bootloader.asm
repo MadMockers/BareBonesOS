@@ -13,20 +13,33 @@ start:
             INT BBOS_IRQ_MAGIC
         SET B, POP
         SET J, [B+BBOS_START_ADDR]
-        SUB J, loader_end-loader_entry
+        SUB J, loader_end-trap
 
         SET I, physical_start
         SET Z, J
-        SET A, loader_end-loader_entry
+        SET A, loader_end-trap
 .copy_top:
         SUB A, 1
         STI [J], [I]
         IFN A, 0
             SET PC, .copy_top
+        ADD Z, loader_entry-trap
         SET PC, Z
 copy_end:
 
 physical_start:
+
+; trap to stop code underneath us from running into us
+trap:
+    SET J, PC
+    SET SP, 0
+    SET PUSH, J
+    ADD [SP], trap_str-trap-1
+        SET I, J
+        ADD I, write_screen-trap-1
+        JSR I
+    ADD SP, 1
+    SUB PC, 1
 
 loader_entry:
     SET J, PC
@@ -104,5 +117,7 @@ drive_fail:
     .asciiz "Error while reading"
 title_str:
     .asciiz "BootLoader v0.1"
+trap_str:
+    .asciiz "Caught stray execution: halting"
 loader_end:
 end:
