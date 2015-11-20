@@ -49,11 +49,11 @@
         ],
         "returns": [
             {
-                "name": "x",
+                "name": "y",
                 "help": "Y position of cursor"
             },
             {
-                "name": "y",
+                "name": "x",
                 "help": "X position of cursor"
             }
         ],
