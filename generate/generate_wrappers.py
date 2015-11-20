@@ -33,12 +33,11 @@ for f in defs:
     print "%s:" % f["name"]
 
     indent = 1
+    if ret_count == 0:
+        op(indent, "SET PUSH, A")
+        indent += 1
     if ret_count > arg_count:
         op(indent, "SUB SP, %d" % (ret_count - arg_count))
-    elif arg_count > ret_count:
-        for i in range(ret_count, arg_count):
-            op(indent, "SET PUSH, %s" % regs[i])
-        indent += 1
 
     for i in range(0, arg_count):
         op(indent, "SET PUSH, %s" % regs[i])
@@ -50,8 +49,8 @@ for f in defs:
 
     if arg_count > ret_count:
         op(indent, "ADD SP, %d" % (arg_count - ret_count))
+    if ret_count == 0:
         indent -= 1
-        for i in range(ret_count, arg_count):
-            op(indent, "SET %s, POP" % regs[i])
+        op(indent, "SET A, POP")
     op(indent, "SET PC, POP")
     print("")
