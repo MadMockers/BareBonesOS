@@ -1,0 +1,423 @@
+[
+    {
+        "name": "get_bbos_info",
+        "bbos_id": "0x0000",
+        "args": [],
+        "returns": [
+            {
+                "name": "bbosinfo",
+                "help": "Pointer to a struct bbosinfo"
+            }
+        ],
+        "version": 1.0,
+        "help": "Provides the information available in the 'bbosinfo' struct, namely the BBOS version, position of BBOS in memory, the address of the BBOS interrupt handler, and the address of the BBOS API handler.  The BBOS version has the major version in the high octet, and the minor version in the low octet.  This function returns a pointer to a bbosinfo struct. This struct must not be modified."
+    },
+    {
+        "name": "is_screen_attached",
+        "bbos_id": "0x1000",
+        "args": [],
+        "returns": [
+            {
+                "name": "attached",
+                "help": "Non zero if a display is attached"
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "set_cursor_pos",
+        "bbos_id": "0x1001",
+        "args": [
+            {
+                "name": "x",
+                "help": "X position of cursor"
+            },
+            {
+                "name": "y",
+                "help": "Y position of cursor"
+            }
+        ],
+        "returns": [],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "get_cursor_pos",
+        "bbos_id": "0x1002",
+        "args": [
+        ],
+        "returns": [
+            {
+                "name": "x",
+                "help": "Y position of cursor"
+            },
+            {
+                "name": "y",
+                "help": "X position of cursor"
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "write_char",
+        "bbos_id": "0x1003",
+        "args": [
+            {
+                "name": "character",
+                "help": "16 bit character. If top 9 bits are unset, the default format will be applied"
+            },
+            {
+                "name": "movecursor",
+                "help": "If non-zero, the cursor will be progressed by 1"
+            }
+        ],
+        "returns": [
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "write_string",
+        "bbos_id": "0x1004",
+        "args": [
+            {
+                "name": "string",
+                "help": "Zero terminated 16bit string. Any unformatted character will have the default format applied"
+            },
+            {
+                "name": "newline",
+                "help": "If non-zero, the cursor will progress to the next line after the string has been written"
+            }
+        ],
+        "returns": [
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "scroll_screen",
+        "bbos_id": "0x1005",
+        "args": [
+            {
+                "name": "line_count",
+                "help": "Number of lines to move the content on the display up by"
+            }
+        ],
+        "returns": [
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "get_screen_size",
+        "bbos_id": "0x1006",
+        "args": [
+        ],
+        "returns": [
+            {
+                "name": "height",
+                "help": "Screen height, in characters"
+            },
+            {
+                "name": "width",
+                "help": "Screen width, in characters"
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "get_drive_count",
+        "bbos_id": "0x2000",
+        "args": [
+        ],
+        "returns": [
+            {
+                "name": "drive_count",
+                "help": "Number of drives detected"
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "check_drive_status",
+        "bbos_id": "0x2001",
+        "args": [
+            {
+                "name": "drive_num",
+                "help": "Drive number, from 0 to get_drive_count"
+            }
+        ],
+        "returns": [
+            {
+                "name": "status",
+                "help": "Status code. View BBOS readme for more information"
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "get_drive_parameters",
+        "bbos_id": "0x2002",
+        "args": [
+            {
+                "name": "drive_params",
+                "help": "Pointer to a DriveParams structure which will be filled in by this call"
+            },
+            {
+                "name": "drive_num",
+                "help": "Drive number, from 0 to get_drive_count"
+            }
+        ],
+        "returns": [
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "read_drive_sector",
+        "bbos_id": "0x2003",
+        "args": [
+            {
+                "name": "sector",
+                "help": "The sector of the drive to read"
+            },
+            {
+                "name": "pointer",
+                "help": "A pointer to memory where the sector will be written to"
+            },
+            {
+                "name": "drive_num",
+                "help": "Drive number, from 0 to get_drive_count"
+            }
+        ],
+        "returns": [
+            {
+                "name": "success",
+                "help": "Non-zero on success"
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "write_drive_sector",
+        "bbos_id": "0x2004",
+        "args": [
+            {
+                "name": "sector",
+                "help": "The sector of the drive to write to"
+            },
+            {
+                "name": "pointer",
+                "help": "A pointer to memory which is to be written"
+            },
+            {
+                "name": "drive_num",
+                "help": "Drive number, from 0 to get_drive_count"
+            }
+        ],
+        "returns": [
+            {
+                "name": "success",
+                "help": "Non-zero on success"
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "is_keyboard_attached",
+        "bbos_id": "0x3000",
+        "args": [
+        ],
+        "returns": [
+            {
+                "name": "attached",
+                "help": "Non-zero if a keyboard is attached"
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "read_character",
+        "bbos_id": "0x3001",
+        "args": [
+            {
+                "name": "blocking",
+                "help": "If non-zero, don't return until a key is typed"
+            }
+        ],
+        "returns": [
+            {
+                "name": "character",
+                "help": "The character which was typed, or 0 if no key was typed"
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "is_rtc_attached",
+        "bbos_id": "0x4000",
+        "args": [
+        ],
+        "returns": [
+            {
+                "name": "attached",
+                "help": "Non-zero if an RTC is attached"
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "is_comms_attached",
+        "bbos_id": "0x5000",
+        "args": [
+        ],
+        "returns": [
+            {
+                "name": "attached",
+                "help": "Non-zero if supported communications hardware is attached"
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "comms_query",
+        "bbos_id": "0x5001",
+        "args": [
+            {
+                "name": "comms_info",
+                "help": "A pointer to a CommsInfo struct which this function will fill in"
+            }
+        ],
+        "returns": [
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "comms_query_port",
+        "bbos_id": "0x5002",
+        "args": [
+            {
+                "name": "port",
+                "help": "Port number to query"
+            },
+            {
+                "name": "name",
+                "help": "Pointer to a memory block of 32 words which will be filled in with the name of the port"
+            }
+        ],
+        "returns": [
+            {
+                "name": "id",
+                "help": "The ID of the port"
+            },
+            {
+                "name": "connected",
+                "help": "Non-zero if this port has a remote device connected to it"
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "comms_configure",
+        "bbos_id": "0x5003",
+        "args": [
+            {
+                "name": "width",
+                "help": "Configure the current port send / receive width. 0 = 16 bit, 1 = 32 bit"
+            }
+        ],
+        "returns": [
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "comms_receive",
+        "bbos_id": "0x5004",
+        "args": [
+        ],
+        "returns": [
+            {
+                "name": "error",
+                "help": "Error code. See BBOS readme for more information"
+            },
+            {
+                "name": "high",
+                "help": "The high byte of the received word, if in 32 bit mode"
+            },
+            {
+                "name": "low",
+                "help": "The low byte of the received word."
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "comms_transmit",
+        "bbos_id": "0x5005",
+        "args": [
+        ],
+        "returns": [
+            {
+                "name": "error",
+                "help": "Error code. See BBOS readme for more information"
+            },
+            {
+                "name": "high",
+                "help": "The high byte of the word to transmit. Ignored in 16 bit mode"
+            },
+            {
+                "name": "low",
+                "help": "The low byte of the word to transmit."
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "comms_set_port",
+        "bbos_id": "0x5006",
+        "args": [
+            {
+                "name": "port",
+                "help": "Port number"
+            }
+        ],
+        "returns": [
+            {
+                "name": "success",
+                "help": "Non-zero on success"
+            }
+        ],
+        "version": 1.0,
+        "help": ""
+    },
+    {
+        "name": "comms_set_notify",
+        "bbos_id": "0x5007",
+        "args": [
+            {
+                "name": "function",
+                "help": "Function which will be called when new data is ready to be received. Register A is set to the port with data available. The function must preserve all registers."
+            }
+        ],
+        "returns": [
+        ],
+        "version": 1.0,
+        "help": ""
+    }
+]
