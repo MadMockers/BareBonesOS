@@ -49,7 +49,7 @@ video_irq:
         BOR [Z+1], 0xF000
     SET [A], [Z+1]
     IFE [Z+0], 1
-        IFL [vram_cursor], vram_edit-vram_end-1
+        IFL [vram_cursor], vram_end-vram_edit-1
             ADD [vram_cursor], 1
     SET PC, .updatescreen
 
