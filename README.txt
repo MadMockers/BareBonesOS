@@ -143,7 +143,7 @@ Get Cursor Pos          0x1002  OUT X, OUT Y            Y, X            1.0
 Write Char              0x1003  Char, MoveCursor        None            1.0
 Write String            0x1004  StringZ, NewLine        None            1.0
 Scroll Screen           0x1005  Num lines to scroll     None            1.0
-Get Screen Size         0x1006  OUT Width, OUT Height   Height, Width   1.0
+Get Screen Size         0x1006  OUT Height, OUT Width   Width, Height   1.0
 
 -- Drive
 Get Drive Count         0x2000  OUT Drive Count         Drive Count     1.0
