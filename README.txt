@@ -35,7 +35,7 @@ SET A, 0x1003   ; Write Char
 SET PUSH, B     ; Push character to be written to screen
 SET PUSH, 0     ; Don't move cursor
 INT 0x4743      ; invoke BBOS
-ADD SP, 1       ; clean up stack
+ADD SP, 2       ; clean up stack
 
 STRUCTURES
 ==========
