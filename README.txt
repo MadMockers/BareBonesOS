@@ -260,7 +260,7 @@ Scrolls the screen, providing more space at the bottom of the screen.
 'Get Screen Size'
 ---------------
 Arguments: None (2 placeholder)
-Returns: Width, Height
+Returns: Height, Width
 Since: v1.0
 
 Gets size of the screen (measured in characters).
