@@ -142,7 +142,7 @@ video_irq:
     SET PC, POP
 
 .getsize:
-    SET [Z+0], LEM_WID
-    SET [Z+1], LEM_HGT
+    SET [Z+0], LEM_HGT
+    SET [Z+1], LEM_WID
     SET PC, POP
 
