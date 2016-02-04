@@ -28,6 +28,7 @@
 .define DRIVE_ERROR_EJECT       4
 .define DRIVE_ERROR_BAD_SECTOR  5
 .define DRIVE_ERROR_BAD_ADDRESS 6
+.define DRIVE_ERROR_INTERNAL    0xFE
 .define DRIVE_ERROR_BROKEN      0xFF
 
 ;struct CommsInfo

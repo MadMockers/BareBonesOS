@@ -1,5 +1,6 @@
 
 #include "drives/m35fd.asm"
+#include "drives/m525hd.asm"
 
 drive_irq:
     IFE J, 0x0000

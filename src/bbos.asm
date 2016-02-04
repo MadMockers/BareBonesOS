@@ -321,6 +321,9 @@ find_drives:
     IFE A, 0x24c5
         IFE B, 0x4fd5
             SET J, m35fd_interface
+    IFE A, 0x4ac5
+        IFE B, 0x525d
+            SET J, m525hd_interface
     SET PC, POP
 
 ; +2 dest
