@@ -23,6 +23,16 @@
 .define COMMS_CLASS         0xE
 .define PARALLEL_SUBCLASS   0
 
+.define DRIVE_PORT          0
+.define DRIVE_INTERFACE     1
+.define DRIVE_SIZE          2
+
+.define DRIVE_ITF_GETSTATUS 0
+.define DRIVE_ITF_GETPARAM  1
+.define DRIVE_ITF_READ      2
+.define DRIVE_ITF_WRITE     3
+.define DRIVE_ITF_SIZE      4
+
 zero:
     SET I, boot_rom
     SET J, bbos_start
@@ -290,25 +300,27 @@ find_drives:
         SET PC, .loop_break
     HWQ Z
 
-    JSR .is_drive
-    IFE I, 0
+    JSR .get_drive_itf
+    IFE J, 0
         SET PC, .loop_top
     ; drive found
     SET I, [drive_count]
     ADD [drive_count], 1
+    MUL I, DRIVE_SIZE
     ADD I, drives
-    SET [I], Z
+    SET [I+DRIVE_PORT], Z
+    SET [I+DRIVE_INTERFACE], J
     IFL [drive_count], MAX_DRIVES
         SET PC, .loop_top
 .loop_break:
     SET PC, POP
 
-.is_drive:
+.get_drive_itf:
     ; check for M35FD
-    SET I, 0
+    SET J, 0
     IFE A, 0x24c5
         IFE B, 0x4fd5
-            SET I, 1
+            SET J, m35fd_interface
     SET PC, POP
 
 ; +2 dest
@@ -525,7 +537,7 @@ display_port:
 
 ; support up to 8 drives
 drives:
-.reserve    MAX_DRIVES
+.reserve    16 ; MAX_DRIVES * DRIVE_SIZE
 drive_count:
 .dat        0
 
