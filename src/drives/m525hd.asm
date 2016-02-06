@@ -38,18 +38,19 @@ m525hd_interface:
     DAT DRIVE_ERROR_BROKEN      ; BROKEN
 
 .state_lookup:
-    DAT DRIVE_STATE_BUSY        ; INIT
-    DAT DRIVE_STATE_BUSY        ; INIT_WP
+    DAT 0   ; starts from 1
     DAT DRIVE_STATE_READY       ; READY
     DAT DRIVE_STATE_READY_WP    ; READY_WP
     DAT DRIVE_STATE_BUSY        ; BUSY
     DAT DRIVE_STATE_READY       ; PARKED
     DAT DRIVE_STATE_READY_WP    ; PARKED_WP
+    DAT DRIVE_STATE_BUSY        ; INIT
+    DAT DRIVE_STATE_BUSY        ; INIT_WP
 
 .normalize_error_and_state:
     ; B = state
     ; C = error
-    ADD B, .state_lookup-1  ; starts from 1, not 0
+    ADD B, .state_lookup
     SET B, [B]
     ADD C, .error_lookup
     SET C, [C]
