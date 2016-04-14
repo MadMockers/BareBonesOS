@@ -166,6 +166,7 @@ Set RTC Date            0x4004
 Set RTC Alarm           0x4005
 Reset RTC Alarm         0x4006
 
+Comms not supported at this time
 -- Comms
 Comms Attached          0x5000  OUT Attached            Attached        1.0
 Query                   0x5001  *CommsInfo              None            1.0

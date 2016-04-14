@@ -15,8 +15,6 @@
 
 .define MAX_DRIVES  8
 
-.define COMMS_IRQ   0x47E0
-
 .define HID_CLASS           3
 .define KEYBOARD_SUBCLASS   0
 
@@ -125,9 +123,6 @@ irq_handler_jsr:
     SET PUSH, A
     SET A, 0x4744
 irq_handler:
-    IFE A, COMMS_IRQ
-        SET PC, comms_notify
-
     IFN A, 0x4743
         IFN A, 0x4744
             RFI
