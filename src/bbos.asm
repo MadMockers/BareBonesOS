@@ -1,35 +1,35 @@
 
 #include "bbos.inc.asm"
 
-.define VERSION 0x0100
+.define VERSION,    0x0100
 
-.define RUN_AT  0xF000
+.define RUN_AT, 0xF000
 
-.define LEM_ID  0x7349f615
-.define LEM_VER 0x1802
-.define LEM_MFR 0x1c6c8b36
-.define LEM_WID 32
-.define LEM_HGT 12
+.define LEM_ID,     0x7349f615
+.define LEM_VER,    0x1802
+.define LEM_MFR,    0x1c6c8b36
+.define LEM_WID,    32
+.define LEM_HGT,    12
 
-.define VRAM_SIZE   384 ; LEM_WID * LEM_HGT
+.define VRAM_SIZE,  384 ; LEM_WID * LEM_HGT
 
-.define MAX_DRIVES  8
+.define MAX_DRIVES, 8
 
-.define HID_CLASS           3
-.define KEYBOARD_SUBCLASS   0
+.define HID_CLASS,          3
+.define KEYBOARD_SUBCLASS,  0
 
-.define COMMS_CLASS         0xE
-.define PARALLEL_SUBCLASS   0
+.define COMMS_CLASS,        0xE
+.define PARALLEL_SUBCLASS,  0
 
-.define DRIVE_PORT          0
-.define DRIVE_INTERFACE     1
-.define DRIVE_SIZE          2
+.define DRIVE_PORT,         0
+.define DRIVE_INTERFACE,    1
+.define DRIVE_SIZE,         2
 
-.define DRIVE_ITF_GETSTATUS 0
-.define DRIVE_ITF_GETPARAM  1
-.define DRIVE_ITF_READ      2
-.define DRIVE_ITF_WRITE     3
-.define DRIVE_ITF_SIZE      4
+.define DRIVE_ITF_GETSTATUS,    0
+.define DRIVE_ITF_GETPARAM,     1
+.define DRIVE_ITF_READ,         2
+.define DRIVE_ITF_WRITE,        3
+.define DRIVE_ITF_SIZE,         4
 
 zero:
     SET I, boot_rom
@@ -125,7 +125,7 @@ irq_handler_jsr:
 irq_handler:
     IFN A, 0x4743
         IFN A, 0x4744
-            RFI
+            RFI 0
 
     SET PUSH, Z
     SET Z, SP
@@ -158,7 +158,7 @@ irq_handler:
     SET A, POP
     SET Z, POP
     IFE A, 0x4743
-        RFI
+        RFI 0
     SET A, POP
     SET PC, POP
 
