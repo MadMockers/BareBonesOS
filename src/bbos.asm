@@ -96,11 +96,11 @@ entry:
     IFE A, 0
         SET PC, .die
 
-    SET PUSH, str_retry
     SET A, 0x1004
-    SET PUSH, 1
+    SET PUSH, str_retry
+    SET PUSH, 2
         INT BBOS_IRQ_MAGIC
-    ADD SP, 1
+    ADD SP, 2
 
     SET A, 0x3001
     SET PUSH, 1
