@@ -241,12 +241,12 @@ Arguments: StringZ, NewLine
 Returns: None
 Since: v1.0
 
-'StringZ' refers to a zero terminated string, where is char is 16 bits.
+'StringZ' refers to a zero terminated string, where each character is 16 bits.
 As each character is written, if the high 9 bits of are unset (i.e, the
 character has no format), a default format of 0xF000 is applied, which
 is white on black.
 The cursor is progressed by the number of characters in the string. If the
-string runs off the buttom of the screen, the screen is scrolled in order
+string runs off the bottom of the screen, the screen is scrolled in order
 to display the entire string. If 'NewLine' is non zero, the cursor will
 be rounded up to the next line after being progressed.
 
