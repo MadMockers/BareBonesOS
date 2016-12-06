@@ -132,50 +132,49 @@ In short:
 
 FUNCTION TABLE
 ==============
-Name                    A       Args                    Returns         Version
--------------------------------------------------------------------------------
-Get BBOS Info           0x0000  OUT *bbosinfo           *bbosinfo       1.0
+Name                    A       Args                            Returns               Version
+---------------------------------------------------------------------------------------------
+Get BBOS Info           0x0000  OUT *bbosinfo                 | *bbosinfo           | 1.0
 
 -- Video        
-Screen Attached         0x1000  OUT Attached            Attached        1.0
-Set Cursor Pos          0x1001  X, Y                    None            1.0
-Get Cursor Pos          0x1002  OUT X, OUT Y            Y, X            1.0
-Write Char              0x1003  Char, MoveCursor        None            1.0
-Write String            0x1004  StringZ, NewLine        None            1.0
-Scroll Screen           0x1005  Num lines to scroll     None            1.0
-Get Screen Size         0x1006  OUT Width, OUT Height   Height, Width   1.0
+Screen Attached         0x1000  OUT Attached                  | Attached            | 1.0
+Set Cursor Pos          0x1001  X, Y                          | None                | 1.0
+Get Cursor Pos          0x1002  OUT X, OUT Y                  | Y, X                | 1.0
+Write Char              0x1003  Char, MoveCursor              | None                | 1.0
+Write String            0x1004  StringZ, NewLine              | None                | 1.0
+Scroll Screen           0x1005  Num lines to scroll           | None                | 1.0
+Get Screen Size         0x1006  OUT Width, OUT Height         | Height, Width       | 1.0
 
 -- Drive
-Get Drive Count         0x2000  OUT Drive Count         Drive Count     1.0
-Check Drive Status      0x2001  DriveNum                StatusCode      1.0
-Get Drive Parameters    0x2002  *DriveParams, DriveNum  None            1.0
-Read Drive Sector       0x2003  Sector, Ptr, DriveNum   Success         1.0
-Write Drive Sector      0x2004  Sector, Ptr, DriveNum   Success         1.0
+Get Drive Count         0x2000  OUT Drive Count               | Drive Count         | 1.0
+Check Drive Status      0x2001  DriveNum                      | StatusCode          | 1.0
+Get Drive Parameters    0x2002  *DriveParams, DriveNum        | None                | 1.0
+Read Drive Sector       0x2003  Sector, Ptr, DriveNum         | Success             | 1.0
+Write Drive Sector      0x2004  Sector, Ptr, DriveNum         | Success             | 1.0
 
 -- Keyboard
-Keyboard Attached       0x3000  OUT Attached            Attached        1.0
-Read Character          0x3001  Blocking                Char            1.0
+Keyboard Attached       0x3000  OUT Attached                  | Attached            | 1.0
+Read Character          0x3001  Blocking                      | Char                | 1.0
 
-RTC Specification is undefined as there is currently no RTC hardware
 -- RTC
-RTC Attached            0x4000  OUT Attached            Attached        1.0
-Read RTC Time           0x4001
-Read RTC Date           0x4002
-Set RTC Time            0x4003
-Set RTC Date            0x4004
-Set RTC Alarm           0x4005
-Reset RTC Alarm         0x4006
+RTC Attached            0x4000  OUT Attached                  | Attached            | 1.0
+Read RTC Time           0x4001  OUT Hrs, OUT Mins, OUT Secs   | Secs, Mins, Hrs     | 1.1
+Read RTC Date           0x4002  OUT Year, OUT Month, OUT Day  | Day, Month, Year    | 1.1
+Set RTC Time            0x4003  Hrs, Mins, Secs               | None                | 1.1
+Set RTC Date            0x4004  Year, Month, Day              | None                | 1.1
+Set RTC Alarm           0x4005  NOT SUPPORTED
+Reset RTC Alarm         0x4006  NOT SUPPORTED
 
 Comms not supported at this time
 -- Comms
-Comms Attached          0x5000  OUT Attached            Attached        1.0
-Query                   0x5001  *CommsInfo              None            1.0
-Query Port              0x5002  Port, *Name             ID, Connected   1.0
-Configure               0x5003  DataWidth               None            1.0
-Receive                 0x5004  OUT Lo, OUT Hi, OUT Err Err, Hi, Lo     1.0
-Transmit                0x5005  Hi, Lo                  Error           1.0
-Set Port                0x5006  Port                    Success         1.0
-Set Notify              0x5007  FunctionPtr             None            1.0
+Comms Attached          0x5000  OUT Attached                  | Attached            | 1.0
+Query                   0x5001  *CommsInfo                    | None                | 1.0
+Query Port              0x5002  Port, *Name                   | ID, Connected       | 1.0
+Configure               0x5003  DataWidth                     | None                | 1.0
+Receive                 0x5004  OUT Lo, OUT Hi, OUT Err       | Err, Hi, Lo         | 1.0
+Transmit                0x5005  Hi, Lo                        | Error               | 1.0
+Set Port                0x5006  Port                          | Success             | 1.0
+Set Notify              0x5007  FunctionPtr                   | None                | 1.0
 
 FUNCTION DOCUMENTATION
 ======================

@@ -1,7 +1,7 @@
 
 #include "bbos.inc.asm"
 
-.define VERSION 0x0100
+.define VERSION 0x0101
 
 .define RUN_AT  0xF000
 
@@ -10,6 +10,10 @@
 .define LEM_MFR 0x1c6c8b36
 .define LEM_WID 32
 .define LEM_HGT 12
+
+.define RTC_ID  0x12d1b402
+.define RTC_VER 0x2
+.define RTC_MFR 0x1c6c8b36
 
 .define VRAM_SIZE   384 ; LEM_WID * LEM_HGT
 
@@ -96,7 +100,7 @@ entry:
 
     SET A, 0x1004
     SET PUSH, str_retry
-    SET PUSH, 2
+    SET PUSH, 1
         INT BBOS_IRQ_MAGIC
     ADD SP, 2
 
@@ -106,8 +110,8 @@ entry:
     ADD SP, 1
     SET PC, .retry
 .no_drives:
-    SET PUSH, str_no_drives
     SET A, 0x1004
+    SET PUSH, str_no_drives
     SET PUSH, 1
         INT BBOS_IRQ_MAGIC
     ADD SP, 2
@@ -318,6 +322,19 @@ find_drives:
             SET J, m35fd_interface
     SET PC, POP
 
+find_rtc:
+    ; find rtc - unfortunately at this point we can't search by device class
+    SET PUSH, RTC_ID&0xFFFF
+    SET PUSH, RTC_ID>>16
+    SET PUSH, RTC_VER
+    SET PUSH, RTC_MFR&0xFFFF
+    SET PUSH, RTC_MFR>>16
+        JSR find_hardware
+    SET [rtc_port], POP
+    ADD SP, 4
+
+    SET PC, POP
+
 ; +2 dest
 ; +1 src
 ; +0 len
@@ -486,6 +503,20 @@ strlen:
     SUB A, POP
     SET PC, POP
 
+feature_not_implemented:
+    SET A, 0x1004
+    SET PUSH, str_feature_not_implemented
+    SET PUSH, 1
+        INT BBOS_IRQ_MAGIC
+    ADD SP, 2
+    SET A, 0x1004
+    SET PUSH, str_halting
+    SET PUSH, 1
+        INT BBOS_IRQ_MAGIC
+    ADD SP, 2
+.die:
+    SET PC, .die
+
 boot_str1:
 .dat        0x4042
 .dat        0x4061
@@ -530,6 +561,9 @@ vram_cursor:
 display_port:
 .dat        0xFFFF
 
+rtc_port:
+.dat        0xFFFF
+
 ; support up to 8 drives
 drives:
 .reserve    16 ; MAX_DRIVES * DRIVE_SIZE
@@ -548,6 +582,10 @@ str_no_boot:
 .asciiz "No bootable media found"
 str_no_drives:
 .asciiz "No drives connected"
+str_feature_not_implemented:
+.asciiz "Attempted to use unimplemented BBOS feature."
+str_halting:
+.asciiz "Halting.."
 
 
 bbos_end:
