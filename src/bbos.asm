@@ -125,7 +125,7 @@ irq_handler_jsr:
 irq_handler:
     IFN A, 0x4743
         IFN A, 0x4744
-            RFI
+            RFI 0
 
     SET PUSH, Z
     SET Z, SP
@@ -158,7 +158,7 @@ irq_handler:
     SET A, POP
     SET Z, POP
     IFE A, 0x4743
-        RFI
+        RFI 0
     SET A, POP
     SET PC, POP
 
