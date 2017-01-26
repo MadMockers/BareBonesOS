@@ -10,8 +10,14 @@ drive_irq:
     SET PC, POP
 
 .valid:
+    SET PUSH, B
+    SET B, [drive_count]
+    SUB B, POP
+    SUB B, 1
+
     MUL B, DRIVE_SIZE
-    ADD B, drives
+    ADD B, [drive_array]
+
     SET C, [B+DRIVE_INTERFACE]
     IFE J, 0x0001
         SET PC, [C+DRIVE_ITF_GETSTATUS]

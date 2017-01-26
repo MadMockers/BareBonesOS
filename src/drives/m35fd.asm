@@ -7,7 +7,7 @@ m35fd_interface:
 
 .getstatus:
     SET A, 0
-    HWI [B]
+    HWI [B+DRIVE_PORT]
     SHL B, 8
     AND C, 0xFF
     BOR B, C
@@ -27,7 +27,7 @@ m35fd_interface:
             SET X, [Z+2]
             SET Y, [Z+1]
             SET A, 2
-            HWI [B]
+            HWI [B+DRIVE_PORT]
         SET B, POP
     SET Y, POP
     SET X, POP
@@ -40,7 +40,7 @@ m35fd_interface:
             SET X, [Z+2]
             SET Y, [Z+1]
             SET A, 3
-            HWI [B]
+            HWI [B+DRIVE_PORT]
         SET B, POP
     SET Y, POP
     SET X, POP
@@ -49,7 +49,7 @@ m35fd_interface:
 .wait:
     SET A, 0
     SET PUSH, B
-        HWI [B]
+        HWI [B+DRIVE_PORT]
     SET A, B
     SET B, POP
     IFE A, DRIVE_STATE_BUSY

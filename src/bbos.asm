@@ -49,6 +49,7 @@ vram:
 vram_edit:
 .org RUN_AT
 vram_end:
+alloc_end:
 bbos_start:
 entry:
     SET SP, 0
@@ -299,15 +300,17 @@ find_drives:
     IFE J, 0
         SET PC, .loop_top
     ; drive found
-    SET I, [drive_count]
     ADD [drive_count], 1
-    MUL I, DRIVE_SIZE
-    ADD I, drives
+    SET PUSH, DRIVE_SIZE
+        JSR alloc
+    SET I, POP
+
     SET [I+DRIVE_PORT], Z
     SET [I+DRIVE_INTERFACE], J
-    IFL [drive_count], MAX_DRIVES
-        SET PC, .loop_top
+
+    SET PC, .loop_top
 .loop_break:
+    SET [drive_array], [alloc_pos]
     SET PC, POP
 
 .get_drive_itf:
@@ -486,6 +489,14 @@ strlen:
     SUB A, POP
     SET PC, POP
 
+; SP+1: Size
+; Return
+; SP+1: Memory
+alloc:
+    SUB [alloc_pos], [SP+1]
+    SET [SP+1], [alloc_pos]
+    SET PC, PC
+
 boot_str1:
 .dat        0x4042
 .dat        0x4061
@@ -531,8 +542,8 @@ display_port:
 .dat        0xFFFF
 
 ; support up to 8 drives
-drives:
-.reserve    16 ; MAX_DRIVES * DRIVE_SIZE
+drive_array:
+.dat        0
 drive_count:
 .dat        0
 
@@ -541,6 +552,9 @@ keyboard_port:
 
 comms_port:
 .dat        0
+
+alloc_pos:
+.dat        alloc_end
 
 str_retry:
 .asciiz "Press any key to retry"
