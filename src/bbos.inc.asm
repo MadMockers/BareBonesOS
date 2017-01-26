@@ -42,3 +42,38 @@
 .define COMMS_ERROR_OVERFLOW    1
 .define COMMS_ERROR_GENERIC     2
 .define COMMS_ERROR_NO_DATA     3
+
+; === BBOS function values ===
+.define BBOS_FN_GET_INFO            0x0000      ; v1.0
+
+; Display functions
+.define BBOS_VID_ATTACHED           0x1000      ; v1.0
+.define BBOS_VID_SET_CURSOR_POS     0x1001      ; v1.0
+.define BBOS_VID_GET_CURSOR_POS     0x1002      ; v1.0
+.define BBOS_VID_WRITE_CHAR         0x1003      ; v1.0
+.define BBOS_VID_WRITE_STRING       0x1004      ; v1.0
+.define BBOS_VID_SCROLL             0x1005      ; v1.0
+.define BBOS_VID_GET_SIZE           0x1006      ; v1.0
+
+; Drive functions
+.define BBOS_DRV_GET_COUNT          0x2000      ; v1.0
+.define BBOS_DRV_CHECK_STATUS       0x2001      ; v1.0
+.define BBOS_DRV_GET_PARAMS         0x2002      ; v1.0
+.define BBOS_DRV_READ_SECTOR        0x2003      ; v1.0
+.define BBOS_DRV_WRITE_SECTOR       0x2004      ; v1.0
+
+; Keyboard
+.define BBOS_KEY_ATTACHED           0x3000      ; v1.0
+.define BBOS_KEY_READ_CHAR          0x3001      ; v1.0
+
+; RTC
+.define BBOS_RTC_ATTACHED           0x4000      ; v1.0
+.define BBOS_RTC_READ_TIME          0x4001      ; Not implemented
+.define BBOS_RTC_READ_DATE          0x4002      ; Not implemented
+.define BBOS_RTC_SET_TIME           0x4003      ; Not implemented
+.define BBOS_RTC_SET_DATE           0x4004      ; Not implemented
+.define BBOS_RTC_SET_ALARM          0x4005      ; Not implemented
+.define BBOS_RTC_RESET_ALARM        0x4006      ; Not implemented
+
+; Comms
+.define BBOS_COM_ATTACHED           0x5000      ; v1.0

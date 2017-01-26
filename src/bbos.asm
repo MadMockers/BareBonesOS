@@ -66,7 +66,7 @@ entry:
 .retry:
     SET B, 0
 .loop_top:
-    SET A, 0x2003
+    SET A, BBOS_DRV_READ_SECTOR
     SET PUSH, 0
     SET PUSH, 0
     SET PUSH, B
@@ -83,31 +83,31 @@ entry:
         SET PC, .loop_top
 .loop_break:
     SET PUSH, str_no_boot
-    SET A, 0x1004
+    SET A, BBOS_VID_WRITE_STRING
     SET PUSH, 1
         INT BBOS_IRQ_MAGIC
     ADD SP, 2
-    SET A, 0x3000
+    SET A, BBOS_KEY_ATTACHED
     SET PUSH, 0
         INT BBOS_IRQ_MAGIC
     SET A, POP
     IFE A, 0
         SET PC, .die
 
-    SET A, 0x1004
+    SET A, BBOS_VID_WRITE_STRING
     SET PUSH, str_retry
     SET PUSH, 2
         INT BBOS_IRQ_MAGIC
     ADD SP, 2
 
-    SET A, 0x3001
+    SET A, BBOS_KEY_READ_CHAR
     SET PUSH, 1
         INT BBOS_IRQ_MAGIC
     ADD SP, 1
     SET PC, .retry
 .no_drives:
     SET PUSH, str_no_drives
-    SET A, 0x1004
+    SET A, BBOS_VID_WRITE_STRING
     SET PUSH, 1
         INT BBOS_IRQ_MAGIC
     ADD SP, 2
@@ -164,7 +164,7 @@ irq_handler:
 
 .bbos_irq:
     SET [bbos_info+BBOS_VERSION], VERSION
-    SET [bbos_info+BBOS_START_ADDR], bbos_start-VRAM_SIZE
+    SET [bbos_info+BBOS_START_ADDR], [alloc_pos]
     SET [bbos_info+BBOS_END_ADDR], bbos_end
     SET [bbos_info+BBOS_INT_HANDLER], irq_handler
     SET [bbos_info+BBOS_API_HANDLER], irq_handler_jsr
@@ -272,13 +272,13 @@ find_display:
     SET B, vram
     HWI [display_port]
     
-    SET A, 0x1004
+    SET A, BBOS_VID_WRITE_STRING
     SET PUSH, boot_str1
     SET PUSH, 1
         INT BBOS_IRQ_MAGIC
     ADD SP, 2
 
-    SET A, 0x1004
+    SET A, BBOS_VID_WRITE_STRING
     SET PUSH, boot_str2
     SET PUSH, 1
         INT BBOS_IRQ_MAGIC
