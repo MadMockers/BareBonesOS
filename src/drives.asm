@@ -1,24 +1,23 @@
 
 #include "drives/m35fd.asm"
 
+init_drive:
+    SET PC, POP
+
 drive_irq:
     IFE J, 0x0000
         SET PC, .getcount
     SET B, [Z+0]
-    IFL B, [drive_count]
+    IFL B, [drive_class+CLASS_COUNT]
         SET PC, .valid
     SET PC, POP
 
 .valid:
-    SET PUSH, B
-    SET B, [drive_count]
-    SUB B, POP
-    SUB B, 1
+    ADD B, [drive_class+CLASS_ARRAY]
+    SET B, [B]
+    SET C, [B+HW_INTERFACE]
+    SET B, [B+HW_PORT]
 
-    MUL B, DRIVE_SIZE
-    ADD B, [drive_array]
-
-    SET C, [B+DRIVE_INTERFACE]
     IFE J, 0x0001
         SET PC, [C+DRIVE_ITF_GETSTATUS]
     IFE J, 0x0002
@@ -30,6 +29,6 @@ drive_irq:
     SET PC, POP
 
 .getcount:
-    SET [Z+0], [drive_count]
+    SET [Z+0], [drive_class+CLASS_COUNT]
     SET PC, POP
 

@@ -1,148 +1,151 @@
 
+.define DISPLAY_MEM_START               0
+.define DISPLAY_EDIT_START              1
+.define DISPLAY_MEM_END                 2
+.define DISPLAY_CURSOR                  3
+.define DISPLAY_CURSOR_MAX              4
+.define DISPLAY_WIDTH                   5
+.define DISPLAY_HEIGHT                  6
+.define DISPLAY_SIZE                    7
+
+.define DISPLAY_ITF_REQUIRED_MEM        0
+.define DISPLAY_ITF_GET_DIMENSIONS      1
+.define DISPLAY_ITF_WRITE_CHAR          2
+.define DISPLAY_ITF_WRITE_STRING        3
+.define DISPLAY_ITF_SCROLL_SCREEN       4
+.define DISPLAY_ITF_FLUSH               5
+.define DISPLAY_ITF_SIZE                6
+
+#include "video/lem.asm"
+
+active_display:
+.dat        0
+
+init_video:
+    ; Check if there's anything to initialize
+    IFE [video_class+CLASS_COUNT], 0
+        SET PC, POP
+    SET PUSH, Z
+    SET Z, SP
+    ADD Z, 2
+    SET PUSH, A
+    SET PUSH, B
+    SET PUSH, C
+    SET PUSH, X
+    SET PUSH, Y
+
+        SET A, [video_class+CLASS_ARRAY]
+        SET B, [video_class+CLASS_COUNT]
+        ADD B, A
+
+        SET [active_display], [A]
+
+.init_top:
+            IFE A, B
+                SET PC, .init_break
+
+            ; C: HW struct
+            SET C, [A]
+
+            SET PUSH, A
+            SET PUSH, B
+                ; X: DISPLAY_ITF struct
+                SET X, [C+HW_INTERFACE]
+
+                SET PUSH, DISPLAY_SIZE
+                    JSR alloc
+                ; Y: DISPLAY struct
+                SET Y, POP
+
+                SET PUSH, 0
+                SET PUSH, C
+                    JSR [X+DISPLAY_ITF_GET_DIMENSIONS]
+                SET [Y+DISPLAY_HEIGHT], POP
+                SET [Y+DISPLAY_WIDTH], POP
+
+                SET PUSH, C
+                    JSR [X+DISPLAY_ITF_REQUIRED_MEM]
+                    ; A: required mem
+                    SET A, [SP]
+                    JSR alloc
+                ; B: VRAM
+                SET B, POP
+
+                SET [Y+DISPLAY_MEM_START], B
+                SET [Y+DISPLAY_EDIT_START], B
+                ADD B, A
+                SET [Y+DISPLAY_MEM_END], B
+                SET A, [Y+DISPLAY_WIDTH]
+                MUL A, [Y+DISPLAY_HEIGHT]
+                SUB A, 1
+                SET [Y+DISPLAY_CURSOR_MAX], A
+
+                SET [C+HW_CONTEXT], Y
+
+            SET B, POP
+            SET A, POP
+.init_continue:
+            ADD A, 1
+            SET PC, .init_top
+.init_break:
+
+    SET Y, POP
+    SET X, POP
+    SET C, POP
+    SET B, POP
+    SET A, POP
+    SET Z, POP
+    SET PC, POP
+
 video_irq:
     IFE J, 0x0000
         SET PC, .attached
-    IFE [display_port], 0xFFFF
+
+    SET Y, [active_display]
+    IFE Y, 0
         SET PC, POP
+
+    SET A, [Y+HW_INTERFACE]
+    SET X, [Y+HW_CONTEXT]
 
     IFE J, 0x0001
         SET PC, .setcursor
     IFE J, 0x0002
         SET PC, .getcursor
     IFE J, 0x0003
-        SET PC, .writechar
+        SET PC, [A+DISPLAY_ITF_WRITE_CHAR]
     IFE J, 0x0004
-        SET PC, .writestring
+        SET PC, [A+DISPLAY_ITF_WRITE_STRING]
     IFE J, 0x0005
-        SET PC, .scrollscreen
+        SET PC, [A+DISPLAY_ITF_SCROLL_SCREEN]
     IFE J, 0x0006
         SET PC, .getsize
 
     SET PC, POP
 
 .attached:
-    SET [Z+0], 1
-    IFE [display_port], 0xFFFF
-        SET [Z+0], 0
+    SET [Z+0], [video_class+CLASS_COUNT]
     SET PC, POP
 
 .setcursor:
     SET A, [Z+0]
-    MUL A, LEM_WID
+    MUL A, [X+DISPLAY_WIDTH]
     ADD A, [Z+1]
-    IFL A, vram_end-vram_edit
-        SET [vram_cursor], A
+    IFL A, [X+DISPLAY_CURSOR_MAX]
+        SET [X+DISPLAY_CURSOR], A
     SET PC, POP
 
 .getcursor:
-    SET A, [vram_cursor]
+    SET A, [X+DISPLAY_CURSOR]
+    SET B, [X+DISPLAY_WIDTH]
     SET [Z+1], A
-    MOD [Z+1], LEM_WID
+    MOD [Z+1], B
     SET [Z+0], A
-    DIV [Z+0], LEM_WID
-    SET PC, POP
-
-.writechar:
-    SET A, vram_edit
-    ADD A, [vram_cursor]
-    IFC [Z+1], 0xFF00
-        BOR [Z+1], 0xF000
-    SET [A], [Z+1]
-    IFE [Z+0], 1
-        IFL [vram_cursor], vram_end-vram_edit-1
-            ADD [vram_cursor], 1
-    SET PC, .updatescreen
-
-.writestring:
-    SET A, [Z+1]
-    JSR strlen
-
-    ; calculate if string will fit in buffer
-    SET C, vram_end-vram_edit
-    SUB C, [vram_cursor]
-
-    SET B, A
-    IFE [Z+0], 0
-        SET PC, .writestring_no_newline
-    ; if 0 length, force round up
-    IFE A, 0
-        ADD B, 1
-
-    ; round B up to nearest LEM_WID
-    ADD B, LEM_WID-1
-    DIV B, LEM_WID
-    MUL B, LEM_WID
-.writestring_no_newline:
-
-    IFL B, C
-        SET PC, .writestring_update_cursor
-
-    ; get cursor X position
-    SET X, [vram_cursor]
-    MOD X, LEM_WID
-
-    ; B = x position after write (ignoring wrapping)
-    ADD B, X
-
-    ; B = number of lines to scroll
-    DIV B, LEM_WID
-    SET PUSH, B
-        JSR scrollscreen
-    ADD SP, 1
-
-.writestring_update_cursor:
-    SET C, [vram_cursor]
-    SET B, C
-
-    ; Set B to new cursor position
-    ; A is still strlen
-    ADD B, A
-
-    IFE [Z+0], 0
-        SET PC, .writestring_update_cursor_no_newline
-    ; round B up to nearest LEM_WID
-    ADD B, LEM_WID-1
-    DIV B, LEM_WID
-    MUL B, LEM_WID
-.writestring_update_cursor_no_newline:
-
-    ; sanitize cursor position
-    IFG B, vram_end-vram_edit-1
-        SET B, vram_end-vram_edit-1
-    SET [vram_cursor], B
-
-.writestring_copy:
-    ; set A to VRAM write pointer
-    SET A, vram_edit
-    ; C is still vram_cursor (before update)
-    ADD A, C
-
-    SET B, [Z+1]
-.writestring_top:
-    IFE [B], 0
-        SET PC, .updatescreen
-    SET C, [B]
-    IFC C, 0xFF00
-        BOR C, 0xF000
-    SET [A], C
-    ADD B, 1
-    ADD A, 1
-    SET PC, .writestring_top
-
-.scrollscreen:
-    SET PUSH, [Z+0]
-        JSR scrollscreen
-    ADD SP, 1
-;    SET PC, .updatescreen
-
-.updatescreen:
-    SET A, 0
-    SET B, vram
-    HWI [display_port]
+    DIV [Z+0], B
     SET PC, POP
 
 .getsize:
-    SET [Z+0], LEM_HGT
-    SET [Z+1], LEM_WID
+    SET [Z+0], [X+DISPLAY_HEIGHT]
+    SET [Z+1], [X+DISPLAY_WIDTH]
     SET PC, POP
 

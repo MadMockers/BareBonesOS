@@ -175,6 +175,9 @@ drive_tests:
         JSR write_string
     ADD SP, 2
 
+    IFE B, 0
+        SET PC, POP
+
     SET A, 0
 .loop_top:
     SET PUSH, A
