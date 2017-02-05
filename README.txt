@@ -144,6 +144,8 @@ Write Char              0x1003  Char, MoveCursor        None            1.0
 Write String            0x1004  StringZ, NewLine        None            1.0
 Scroll Screen           0x1005  Num lines to scroll     None            1.0
 Get Screen Size         0x1006  OUT Width, OUT Height   Height, Width   1.0
+Get Screen Count        0x1007  OUT Count               Count           1.1
+Set Active Screen       0x1008  Index                   None            1.1
 
 -- Drive
 Get Drive Count         0x2000  OUT Drive Count         Drive Count     1.0
@@ -265,6 +267,23 @@ Returns: Height, Width
 Since: v1.0
 
 Gets size of the screen (measured in characters).
+
+'Get Screen Count'
+---------------
+Arguments: None (1 placeholder)
+Returns: Count
+Since: v1.1
+
+Gets the number of supported display devices connected.
+
+'Set Active Screen'
+-----------------
+Arguments: Index
+Returns: None
+Since: v1.1
+
+Sets the active screen. Index starts from 0, and must be less than
+screen count. All screen operations take place on the active screen.
 
 'Get Drive Count'
 -----------------

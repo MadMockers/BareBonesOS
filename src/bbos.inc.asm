@@ -54,6 +54,8 @@
 .define BBOS_VID_WRITE_STRING       0x1004      ; v1.0
 .define BBOS_VID_SCROLL             0x1005      ; v1.0
 .define BBOS_VID_GET_SIZE           0x1006      ; v1.0
+.define BBOS_VID_GET_COUNT          0x1007      ; v1.1
+.define BBOS_VID_SET_ACTIVE         0x1008      ; v1.1
 
 ; Drive functions
 .define BBOS_DRV_GET_COUNT          0x2000      ; v1.0

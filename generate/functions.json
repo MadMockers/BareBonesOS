@@ -129,6 +129,34 @@
         "help": ""
     },
     {
+        "name": "get_screen_count",
+        "bbos_id": "0x1007",
+        "args": [
+        ],
+        "returns": [
+            {
+                "name": "count",
+                "help": "Number of attached screens"
+            }
+        ],
+        "version": 1.1,
+        "help": ""
+    },
+    {
+        "name": "set_active_screen",
+        "bbos_id": "0x1008",
+        "args": [
+        ],
+        "returns": [
+            {
+                "name": "index",
+                "help": "Screen index"
+            }
+        ],
+        "version": 1.1,
+        "help": ""
+    },
+    {
         "name": "get_drive_count",
         "bbos_id": "0x2000",
         "args": [

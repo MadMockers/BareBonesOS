@@ -120,11 +120,17 @@ video_irq:
         SET PC, [A+DISPLAY_ITF_SCROLL_SCREEN]
     IFE J, 0x0006
         SET PC, .getsize
+    IFE J, 0x0007
+        SET PC, .getdisplaycount
+    IFE J, 0x0008
+        SET PC, .setactivedisplay
 
     SET PC, POP
 
 .attached:
-    SET [Z+0], [video_class+CLASS_COUNT]
+    SET [Z+0], 0
+    IFN [video_class+CLASS_COUNT], 0
+        SET [Z+0], 1
     SET PC, POP
 
 .setcursor:
@@ -149,3 +155,17 @@ video_irq:
     SET [Z+1], [X+DISPLAY_WIDTH]
     SET PC, POP
 
+.getdisplaycount:
+    SET [Z+0], [video_class+CLASS_COUNT]
+    SET PC, POP
+
+.setactivedisplay:
+    SET A, [video_class+CLASS_COUNT]
+    SET B, [Z+0]
+    IFL B, A
+        SET PC, .inbounds
+    SET PC, POP
+.inbounds:
+    ADD B, [video_class+CLASS_ARRAY]
+    SET [active_display], [B]
+    SET PC, POP

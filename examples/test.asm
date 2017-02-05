@@ -28,6 +28,11 @@ video_tests:
     IFE B, 0
         SET PC, POP
 
+    SET A, 0x1008
+    SET PUSH, 1
+        INT BBOS_IRQ_MAGIC
+    SET 0, POP
+
     SET PUSH, str_set_cursor
     SET PUSH, 1
         JSR write_string
