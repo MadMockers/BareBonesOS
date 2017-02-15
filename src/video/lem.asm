@@ -11,7 +11,7 @@ lem_interface:
     DAT .writestring
     DAT .scrollscreen
     DAT .flush
-    DAT 0   ; No special activation
+    DAT .activate
 
 pixie_interface:
     DAT .required_mem
@@ -210,17 +210,16 @@ pixie_interface:
 
 .flush:
 .updatescreen:
-    SET A, 0
-    SET B, [X+DISPLAY_MEM_START]
-    HWI [Y+HW_PORT]
     SET PC, POP
 
-.pixie_activate:
+.activate:
     SET PUSH, A
     SET PUSH, B
     SET PUSH, C
+    SET PUSH, X
 
-        SET C, [SP+4]
+        SET C, [SP+5]
+        SET X, [C+HW_CONTEXT]
         SET C, [C+HW_PORT]
 
         ; Change display to LEM mode
@@ -228,6 +227,39 @@ pixie_interface:
         SET B, 0
         HWI C
 
+        ; Set the VRAM location
+        SET A, 0
+        SET B, [X+DISPLAY_MEM_START]
+        HWI C
+
+    SET X, POP
+    SET C, POP
+    SET B, POP
+    SET A, POP
+
+    SET PC, POP
+
+.pixie_activate:
+    SET PUSH, A
+    SET PUSH, B
+    SET PUSH, C
+    SET PUSH, X
+
+        SET C, [SP+5]
+        SET X, [C+HW_CONTEXT]
+        SET C, [C+HW_PORT]
+
+        ; Change display to LEM mode
+        SET A, 16
+        SET B, 0
+        HWI C
+
+        ; Set the VRAM location
+        SET A, 0
+        SET B, [X+DISPLAY_MEM_START]
+        HWI C
+
+    SET X, POP
     SET C, POP
     SET B, POP
     SET A, POP
