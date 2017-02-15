@@ -11,6 +11,16 @@ lem_interface:
     DAT .writestring
     DAT .scrollscreen
     DAT .flush
+    DAT 0   ; No special activation
+
+pixie_interface:
+    DAT .required_mem
+    DAT .get_dimensions
+    DAT .writechar
+    DAT .writestring
+    DAT .scrollscreen
+    DAT .flush
+    DAT .pixie_activate
 
 ; +0 HW
 ; Returns
@@ -203,4 +213,23 @@ lem_interface:
     SET A, 0
     SET B, [X+DISPLAY_MEM_START]
     HWI [Y+HW_PORT]
+    SET PC, POP
+
+.pixie_activate:
+    SET PUSH, A
+    SET PUSH, B
+    SET PUSH, C
+
+        SET C, [SP+4]
+        SET C, [C+HW_PORT]
+
+        ; Change display to LEM mode
+        SET A, 16
+        SET B, 0
+        HWI C
+
+    SET C, POP
+    SET B, POP
+    SET A, POP
+
     SET PC, POP

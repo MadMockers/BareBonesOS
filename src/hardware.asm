@@ -23,11 +23,15 @@
 .define HW_SIZE                 4
 
 hardware_def_array:
-.dat    0x7349, 0xf615, 0x1802, HW_CLASS_VIDEO, lem_interface
-.dat    0x734d, 0xf615, 0x1802, HW_CLASS_VIDEO, lem_interface
-.dat    0x4fd5, 0x24c5, 0x000b, HW_CLASS_DRIVE, m35fd_interface
-.dat    0x30cf, 0x7406, 0x0001, HW_CLASS_KEYBOARD, 0
-.dat    0x30c1, 0x7406, 0x0001, HW_CLASS_KEYBOARD, 0
+; Displays
+.dat    0x7349, 0xf615, 0x1802, HW_CLASS_VIDEO, lem_interface       ; LEM1802
+.dat    0x734d, 0xf615, 0x1802, HW_CLASS_VIDEO, lem_interface       ; LEM1802 (Alternative H/W ID)
+.dat    0x774d, 0xf615, 0x1802, HW_CLASS_VIDEO, pixie_interface     ; PIXIE
+; Storage
+.dat    0x4fd5, 0x24c5, 0x000b, HW_CLASS_DRIVE, m35fd_interface     ; M35FD
+; Keyboards
+.dat    0x30cf, 0x7406, 0x0001, HW_CLASS_KEYBOARD, 0                ; Keyboard
+.dat    0x30c1, 0x7406, 0x0001, HW_CLASS_KEYBOARD, 0                ; Keyboard (Alternative H/W ID)
 hardware_def_array_end:
 
 hardware_array:

@@ -14,7 +14,8 @@
 .define DISPLAY_ITF_WRITE_STRING        3
 .define DISPLAY_ITF_SCROLL_SCREEN       4
 .define DISPLAY_ITF_FLUSH               5
-.define DISPLAY_ITF_SIZE                6
+.define DISPLAY_ITF_ACTIVATE            6
+.define DISPLAY_ITF_SIZE                7
 
 #include "video/lem.asm"
 
@@ -88,6 +89,14 @@ init_video:
             ADD A, 1
             SET PC, .init_top
 .init_break:
+
+        SET A, [active_display]
+        SET PUSH, A
+            SET A, [A+HW_INTERFACE]
+            SET A, [A+DISPLAY_ITF_ACTIVATE]
+            IFN A, 0
+                JSR A
+        ADD SP, 1
 
     SET Y, POP
     SET X, POP
@@ -167,5 +176,14 @@ video_irq:
     SET PC, POP
 .inbounds:
     ADD B, [video_class+CLASS_ARRAY]
-    SET [active_display], [B]
+    SET B, [B]
+    SET [active_display], B
+
+    SET PUSH, B
+        SET B, [B+HW_INTERFACE]
+        SET B, [B+DISPLAY_ITF_ACTIVATE]
+        IFN B, 0
+            JSR B
+    ADD SP, 1
+
     SET PC, POP
