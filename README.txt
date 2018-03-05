@@ -41,6 +41,7 @@ STRUCTURES
 ==========
 struct bbosinfo
 {
+    word Version
     word Address_Start
     word Address_End
     word Interrupt_Handler
